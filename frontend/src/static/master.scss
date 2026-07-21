@@ -1319,3 +1319,26 @@ body {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.1); }
 }
+
+.new_news_explore {
+  width: 100%;
+  padding: 15px;
+  font-family: Arial, Helvetica, sans-serif;
+  border-bottom: 1px solid rgba(15, 20, 25, 0.06);
+}
+
+.new_news_explore:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+.new_news_explore h4 {
+  color: #373737d5;
+  font-weight: 500;
+}
+
+.new_news_explore p {
+  margin-top: 5px;
+  font-size: 15px;
+  font-weight: 600;
+}
