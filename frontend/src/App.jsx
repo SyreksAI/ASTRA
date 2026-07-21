@@ -1,47 +1,48 @@
 import React, { useState } from 'react';
 import "./static/master.scss";
 
+// КОМПОНЕНТ ПОСТА
 function Post({ post }) {
     const [liked, setLiked] = useState(false);
     const [likesCount, setLikesCount] = useState(post.likes);
 
     const handleLike = (e) => {
         e.stopPropagation();
-        setLiked(!liked);
-        setLikesCount(prev => liked ? prev - 1 : prev + 1);
+        const newLiked = !liked
+        setLiked(newLiked);
+        setLikesCount(prev => newLiked ? prev - 1 : prev + 1);
     };
 
     return (
-        <div className="post">
-            <div className="post-header">
-                <img src={post.avatar} alt={post.name} className="post-avatar" />
-                <div className="post-user-info">
-                    <div className="post-user-name">{post.name}</div>
-                    <div className="post-user-handle">{post.handle}</div>
+        <div className="post-item">
+            <div className="post-item-header">
+                <img src={post.avatar} alt={post.name} className="post-item-avatar" />
+                <div className="post-item-user-info">
+                    <div className="post-item-user-name">{post.name}</div>
+                    <div className="post-item-user-handle">{post.handle}</div>
                 </div>
-                <div className="post-time">{post.time}</div>
+                <div className="post-item-time">{post.time}</div>
             </div>
             
-            <div className="post-content">{post.content}</div>
+            <div className="post-item-content">{post.content}</div>
+            {post.image && <img src={post.image} alt="Post" className="post-item-image" />}
             
-            {post.image && <img src={post.image} alt="Post" className="post-image" />}
-            
-            <div className="post-actions">
-                <button className="post-action-btn">
+            <div className="post-item-actions">
+                <button className="post-item-action-btn">
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/>
                     </svg>
                     {post.comments}
                 </button>
                 
-                <button className="post-action-btn">
+                <button className="post-item-action-btn">
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"/>
                     </svg>
                     {post.retweets}
                 </button>
                 
-                <button className={`post-action-btn ${liked ? 'liked' : ''}`} onClick={handleLike}>
+                <button className={`post-item-action-btn ${liked ? 'post-item-liked' : ''}`} onClick={handleLike}>
                     <svg viewBox="0 0 24 24" fill={liked ? '#f91880' : 'currentColor'}>
                         <path d={liked 
                             ? "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
@@ -51,7 +52,7 @@ function Post({ post }) {
                     {likesCount}
                 </button>
                 
-                <button className="post-action-btn">
+                <button className="post-item-action-btn">
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 3C7.03 3 3 7.03 3 12c0 2.5 1.27 4.85 3.37 6.25l.65.37-.26.72c-.5 1.4-1.42 3.03-2.71 4.87l.12.12c1.5-.38 3.13-1.22 4.75-2.27l.5-.32c.94.2 1.91.3 2.9.3 4.97 0 9-4.03 9-9s-4.03-9-9-9z"/>
                     </svg>
@@ -61,164 +62,246 @@ function Post({ post }) {
     );
 }
 
+// КОМПОНЕНТ ГЛАВНОЙ СТРАНИЦЫ
 function HomePage({ posts, activeTab, setActiveTab }) {
     return (
-        <div className="home">
-            <div className="Header_block">
+        <div className="home-page">
+            <div className="home-page-header">
                 {['Для тебя', 'Следующий'].map(tab => (
                     <p key={tab} 
-                       className={`header_link ${activeTab === tab ? 'active' : ''}`}
+                       className={`home-page-header-link ${activeTab === tab ? 'home-page-header-link-active' : ''}`}
                        onClick={() => setActiveTab(tab)}>
                         {tab}
                     </p>
                 ))}
             </div>
-            <div className="feed">
+            <div className="home-page-feed">
                 {posts.map(post => <Post key={post.id} post={post} />)}
             </div>
         </div>
     );
 }
 
-function ExplorePage() {
+// КОМПОНЕНТ "ДЛЯ ТЕБЯ" (В EXPLORE)
+function ForYou({suggestedUsers}) {
+    return (
+        <div className="for-you-page">
+            <h3 className="for-you-page-title">Новости дня</h3>
+
+            <div className="for-you-news-list">
+                <div className="for-you-news-item">
+                    <p className="for-you-news-text">Екатерина Леонова — фигуристка взорвала интернет номером под «Лунную сонату»</p>
+                    <span className="for-you-news-meta">2 часа назад • Спорт • 1253 постов</span>
+                </div>
+                <div className="for-you-news-item">
+                    <p className="for-you-news-text">Кристина Орбакайте — дочь Пугачёвой отправилась в тур по США</p>
+                    <span className="for-you-news-meta">3 часа назад • Музыка • 476 постов</span>
+                </div>
+                <div className="for-you-news-item">
+                    <p className="for-you-news-text">Владимир Кехман — директор Театра имени Вахтангова и Михайловского театра неожиданно отменил гастроли в Китай</p>
+                    <span className="for-you-news-meta">5 часа назад • Театр • 218 постов</span>
+                </div>
+                <button className="for-you-show-more-btn">Смотреть ещё</button>
+            </div>
+
+            <div className="for-you-suggestions">
+                <div className="for-you-suggestions-header">
+                    <h3 className="for-you-suggestions-title">За кем следовать</h3>
+                </div>
+
+                <div className="for-you-suggestions-list">
+                    {suggestedUsers.map((person) => (
+                        <div key={person.id} className="for-you-suggestion-item">
+                            <img 
+                                className="for-you-suggestion-avatar" 
+                                src={person.img} 
+                                alt={person.name}
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    // Fallback на генератор аватарок
+                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=1d9bf0&color=fff&size=150&bold=true`;
+                                }}
+                            />
+                            <div className="for-you-suggestion-info">
+                                <h3 className="for-you-suggestion-name">{person.name}</h3>
+                                <p className="for-you-suggestion-role">{person.role}</p>
+                            </div>
+                            <div className="for-you-suggestion-btn-wrapper">
+                                <button className="for-you-suggestion-follow-btn">Следовать</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <button className="for-you-show-more-btn">Смотреть ещё</button>
+            </div>
+        </div>
+    )
+}
+
+// КОМПОНЕНТ "В ТРЕНДЕ" (В EXPLORE)
+function Trending({suggestedUsers}) {
+    return (
+        <div className="trending-page">
+            <div className="trending-news-wrapper">
+                <div className="trending-featured-image">
+                    <img src="Test_img.png" alt="Featured" />
+                </div>
+                <div className="trending-news-list">
+                    <h3 className="trending-news-title">Новости дня</h3>
+                    <div className="trending-news-item">
+                        <p className="trending-news-text">Екатерина Леонова — фигуристка взорвала интернет номером под «Лунную сонату»</p>
+                        <span className="trending-news-meta">2 часа назад • Спорт • 1253 постов</span>
+                    </div>
+                    <div className="trending-news-item">
+                        <p className="trending-news-text">Кристина Орбакайте — дочь Пугачёвой отправилась в тур по США</p>
+                        <span className="trending-news-meta">3 часа назад • Музыка • 476 постов</span>
+                    </div>
+                    <div className="trending-news-item">
+                        <p className="trending-news-text">Владимир Кехман — директор Театра имени Вахтангова и Михайловского театра неожиданно отменил гастроли в Китай</p>
+                        <span className="trending-news-meta">5 часа назад • Театр • 218 постов</span>
+                    </div>
+                    <button className="trending-show-more-btn">Смотреть ещё</button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// КОМПОНЕНТ СТРАНИЦЫ ИССЛЕДОВАНИЯ
+function ExplorePage({ suggestedUsers }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('Для тебя');
 
-    const categories = ['Для тебя', 'В тренде', 'Новости', 'Спорт', 'Видео'];
+    const categories = [
+        { id: 'Для тебя', label: 'Для тебя' },
+        { id: 'В тренде', label: 'В тренде' },
+        { id: 'Новости', label: 'Новости' },
+        { id: 'Спорт', label: 'Спорт' },
+        { id: 'Видео', label: 'Видео' },
+    ];
+
+    const renderContentSearch = () => {
+        switch(activeCategory) {
+            case 'Для тебя':
+                return <ForYou suggestedUsers={suggestedUsers} />;
+            case 'В тренде':
+                return <Trending suggestedUsers={suggestedUsers} />;
+            default:
+                return <ForYou suggestedUsers={suggestedUsers} />;
+        }
+    }
 
     return (
-        <div className="explore">
-            <div className="explore_header">
-                <div className="explore_search">
-                    <input type="text" 
-                           placeholder="Поиск..." 
-                           value={searchQuery}
-                           onChange={e => setSearchQuery(e.target.value)}
-                           className="search_explore" />
-                </div>
-                <div className="Menu_search_header">
+        <div className="explore-page">
+            <div className="explore-page-header">
+                <input type="text" 
+                       placeholder="Поиск..." 
+                       value={searchQuery}
+                       onChange={e => setSearchQuery(e.target.value)}
+                       className="explore-page-search-input" />
+                
+                <div className="explore-page-categories">
                     {categories.map(category => (
-                        <p 
-                            key={category}
-                            className={`item_search_header ${activeCategory === category ? 'active' : ''}`}
-                            onClick={() => setActiveCategory(category)}
-                        >
-                            {category}
+                        <p key={category.id}
+                           className={`explore-page-category-item ${activeCategory === category.id ? 'explore-page-category-active' : ''}`}
+                           onClick={() => setActiveCategory(category.id)}>
+                           {category.label}
                         </p>
                     ))}
                 </div>
             </div>
-            <div className="Result_search">
-                <div className="Search_explore_main">
-                    <h3>Новости дня</h3>
 
-                    <div className="Search_Result">
-                        <div className="News_explore">
-                            <p className='Info_News_explore'>Екатерина Леонова — фигуристка взорвала интернет номером под «Лунную сонату»</p>
-                            2 часа назад • Спорт • 1253 постов
-                        </div>
-                        <div className="News_explore">
-                            <p className='Info_News_explore'>Кристина Орбакайте — дочь Пугачёвой отправилась в тур по США</p>
-                            3 часа назад • Музыка • 476 постов
-                        </div>
-                        <div className="News_explore">
-                            <p className='Info_News_explore'>Владимир Кехман — директор Театра имени Вахтангова и Михайловского театра неожиданно отменил гастроли в Китай</p>
-                            5 часа назад • Театр • 218 постов
-                        </div>
-                        <button className="Search_btn_btn">Смотреть ещё</button>
-                    </div>
-
-                    <div className="Search_block">
-                        <div className="Search_name">
-                            <h3>За кем следовать</h3>
-                        </div>
-
-                        <div className="Search_items">
-                            {[
-                            { name: 'Павел Дуров', role: 'CEO Telegram', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBXjt3QBuQnsx3pKEV-UpT8XXychSKg9gij_WRs4OY1A&s=10' },
-                            { name: 'Дмитрий Нагиев', role: 'Актёр', img: 'https://avatars.mds.yandex.net/i?id=a0629e3b84c2ddbeeb6ee3a0d606f558563ec106-5171197-images-thumbs&n=13' },
-                            { name: 'Егор Крид', role: 'Певец', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSox8V0ukDUsoxpzJtiA_nZj9wTmVal5asFAoN2u8PZTw&s=10' },
-                            { name: 'Сергей Жуков', role: 'Певец', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRd-8LIrbnf-SCygSHIM6pWBiLbpeQk05V0mDx1GuoMyw&s=10' }
-                            ].map((person, i) => (
-                            <div key={i} className="Search_block_info">
-                                <img className="Search_info_img" src={person.img} alt={person.name} />
-                                <div className="Search_info">
-                                <h3>{person.name}</h3>
-                                <p>{person.role}</p>
-                                </div>
-                                <div className="Search_btn_block">
-                                <button className="Search_btn">Следовать</button>
-                                </div>
-                            </div>
-                            ))}
-                        </div>
-
-                        <button className="Search_btn_btn">Смотреть ещё</button>
-                    </div>
-
-                    <div className="Search_your_post">
-                        
-                    </div>
+            <div className="explore-page-content">
+                <div className="explore-page-main">
+                    {renderContentSearch()}
                 </div>
             </div>
         </div>
     );
 }
 
-function UnderDevelopmentPage({ pageName }) {
+// КОМПОНЕНТ СТРАНИЦЫ УВЕДОМЛЕНИЙ
+function NotificationsPage() {
+    const notifications = [
+        { id: 1, text: 'Павел Дуров ответил на ваш комментарий', time: '5 минут назад', read: false },
+        { id: 2, text: 'Дмитрий Нагиев лайкнул ваш пост', time: '15 минут назад', read: false },
+        { id: 3, text: 'Новый подписчик: Егор Крид', time: '2 часа назад', read: true },
+        { id: 4, text: 'Сергей Жуков опубликовал новый пост', time: '3 часа назад', read: true },
+    ];
+
     return (
-        <div className="under_development">
-            <h2>{pageName}</h2>
-            <p>Страница "{pageName}" в разработке</p>
-            <div className="development_icon">🚧</div>
+        <div className="notifications-page">
+            <div className="notifications-page-list">
+                {notifications.map(notif => (
+                    <div key={notif.id} className={`notifications-page-item ${notif.read ? 'notifications-page-read' : 'notifications-page-unread'}`}>
+                        <div className="notifications-page-content">
+                            <p className="notifications-page-text">{notif.text}</p>
+                            <span className="notifications-page-time">{notif.time}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
 
+// КОМПОНЕНТ СТРАНИЦЫ В РАЗРАБОТКЕ
+function UnderDevelopmentPage({ pageName }) {
+    return (
+        <div className="under-development-page">
+            <h2 className="under-development-page-title">{pageName}</h2>
+            <p className="under-development-page-text">Страница "{pageName}" в разработке</p>
+            <div className="under-development-page-icon">🚧</div>
+        </div>
+    );
+}
+
+// КОМПОНЕНТ МУЗЫКАЛЬНОГО ПЛЕЕРА
 function MusicPlayer({ tracks, currentTrack, isPlaying, onPlayToggle, onNext, onPrev }) {
     return (
-        <div className="music_player">
-            <div className="music_player_header">
-                <div className="music_player_title">
+        <div className="music-player">
+            <div className="music-player-header">
+                <div className="music-player-title-wrapper">
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
                     </svg>
-                    <span>Музыка</span>
+                    <span className="music-player-title">Музыка</span>
                 </div>
-                <div className="music_player_status">
+                <div className="music-player-status">
                     {isPlaying ? '▶ Сейчас играет' : '⏸ На паузе'}
                 </div>
             </div>
 
-            <div className="music_current_track">
+            <div className="music-player-current-track">
                 <img src={tracks[currentTrack].cover} 
                      alt={tracks[currentTrack].title}
-                     className="music_cover" />
-                <div className="music_track_info">
-                    <div className="music_track_title">{tracks[currentTrack].title}</div>
-                    <div className="music_track_artist">{tracks[currentTrack].artist}</div>
-                    <div className="music_track_album">{tracks[currentTrack].album}</div>
+                     className="music-player-cover" />
+                <div className="music-player-track-info">
+                    <div className="music-player-track-title">{tracks[currentTrack].title}</div>
+                    <div className="music-player-track-artist">{tracks[currentTrack].artist}</div>
+                    <div className="music-player-track-album">{tracks[currentTrack].album}</div>
                 </div>
             </div>
 
-            <div className="music_progress">
-                <div className="music_progress_bar">
-                    <div className="music_progress_fill" style={{ width: '45%' }}></div>
+            <div className="music-player-progress">
+                <div className="music-player-progress-bar">
+                    <div className="music-player-progress-fill" style={{ width: '45%' }}></div>
                 </div>
-                <div className="music_time">
+                <div className="music-player-time">
                     <span>1:23</span>
                     <span>{tracks[currentTrack].duration}</span>
                 </div>
             </div>
 
-            <div className="music_controls">
-                <button className="music_control_btn" onClick={onPrev}>
+            <div className="music-player-controls">
+                <button className="music-player-control-btn" onClick={onPrev}>
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
                     </svg>
                 </button>
                 
-                <button className={`music_play_btn ${isPlaying ? 'playing' : ''}`} onClick={onPlayToggle}>
+                <button className={`music-player-play-btn ${isPlaying ? 'music-player-playing' : ''}`} onClick={onPlayToggle}>
                     {isPlaying ? (
                         <svg viewBox="0 0 24 24" fill="currentColor">
                             <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
@@ -230,7 +313,7 @@ function MusicPlayer({ tracks, currentTrack, isPlaying, onPlayToggle, onNext, on
                     )}
                 </button>
                 
-                <button className="music_control_btn" onClick={onNext}>
+                <button className="music-player-control-btn" onClick={onNext}>
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
                     </svg>
@@ -240,19 +323,20 @@ function MusicPlayer({ tracks, currentTrack, isPlaying, onPlayToggle, onNext, on
     );
 }
 
+// КОМПОНЕНТ МЕНЮ
 function Menu({ items, activeItem, onItemClick }) {
     return (
-        <nav className="Menu">
+        <nav className="menu-nav">
             {items.map(item => (
                 <div key={item.id}
-                     className={`Item ${activeItem === item.id ? 'active' : ''}`}
+                     className={`menu-item ${activeItem === item.id ? 'menu-item-active' : ''}`}
                      onClick={() => onItemClick(item)}>
-                    <img src={item.icon} alt={item.label} className="Item_Img" />
-                    <span className="Menu_Item">{item.label}</span>
+                    <img src={item.icon} alt={item.label} className="menu-item-icon" />
+                    <span className="menu-item-label">{item.label}</span>
                 </div>
             ))}
-            <div className="Item">
-                <button className="Item_btm" onClick={() => alert('Создание нового поста')}>
+            <div className="menu-item menu-item-create">
+                <button className="menu-item-create-btn" onClick={() => alert('Создание нового поста')}>
                     Создать
                 </button>
             </div>
@@ -260,12 +344,20 @@ function Menu({ items, activeItem, onItemClick }) {
     );
 }
 
+// ГЛАВНЫЙ КОМПОНЕНТ APP
 function App() {
     const [activeItem, setActiveItem] = useState('Главная');
     const [activeTab, setActiveTab] = useState('Для тебя');
     const [currentPage, setCurrentPage] = useState('home');
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTrack, setCurrentTrack] = useState(0);
+
+    const suggestedUsers = [
+        { id: 1, name: 'Павел Дуров', role: 'CEO Telegram', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBXjt3QBuQnsx3pKEV-UpT8XXychSKg9gij_WRs4OY1A&s=10' },
+        { id: 2, name: 'Дмитрий Нагиев', role: 'Актёр', img: 'https://avatars.mds.yandex.net/i?id=a0629e3b84c2ddbeeb6ee3a0d606f558563ec106-5171197-images-thumbs&n=13' },
+        { id: 3, name: 'Егор Крид', role: 'Певец', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSox8V0ukDUsoxpzJtiA_nZj9wTmVal5asFAoN2u8PZTw&s=10' },
+        { id: 4, name: 'Сергей Жуков', role: 'Певец', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRd-8LIrbnf-SCygSHIM6pWBiLbpeQk05V0mDx1GuoMyw&s=10' }
+    ];
 
     const menuItems = [
         { id: 'Главная', icon: '/menu/home.png', label: 'Главная', page: 'home' },
@@ -349,15 +441,19 @@ function App() {
 
     const handleMenuItemClick = (item) => {
         setActiveItem(item.id);
-        setCurrentPage(item.id === 'Главная' ? 'home' : item.id === 'Исследовать' ? 'explore' : 'other');
+        setCurrentPage(item.page || 'home');
     };
 
     const renderContent = () => {
         switch(currentPage) {
-            case 'home': return <HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />;
-            case 'explore': return <ExplorePage />;
-            case 'other': return <UnderDevelopmentPage pageName={activeItem} />;
-            default: return <HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />;
+            case 'home': 
+                return <HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />;
+            case 'explore': 
+                return <ExplorePage suggestedUsers={suggestedUsers} />;
+            case 'notifications': 
+                return <NotificationsPage />;
+            default: 
+                return <UnderDevelopmentPage pageName={activeItem} />;
         }
     };
 
@@ -367,57 +463,57 @@ function App() {
 
     return (
         <div className="app">
-            <div className="main_block">
-                <div className="left_container">
-                    <div className="Block">
-                        <div className="Logo_Block">
-                            <img src="/logo.jpg" alt="Логотип" className="Logo" />
+            <div className="app-main-wrapper">
+                <div className="app-left-sidebar">
+                    <div className="app-left-sidebar-block">
+                        <div className="app-logo-wrapper">
+                            <img src="/logo.jpg" alt="Логотип" className="app-logo" />
                         </div>
                         
                         <Menu items={menuItems} activeItem={activeItem} onItemClick={handleMenuItemClick} />
 
-                        <div className="UserProfile">
-                            <div className="UserAvatar">A</div>
-                            <div className="UserInfo">
-                                <div className="UserName">Алексей</div>
-                                <div className="UserHandle">@alexey</div>
+                        <div className="app-user-profile">
+                            <div className="app-user-avatar">A</div>
+                            <div className="app-user-info">
+                                <div className="app-user-name">Алексей</div>
+                                <div className="app-user-handle">@alexey</div>
                             </div>
-                            <div className="UserMore">•••</div>
+                            <div className="app-user-more">•••</div>
                         </div>
                     </div>
                 </div>
                 
-                <div className="center_container">
+                <div className="app-center-content">
                     {renderContent()}
                 </div>
                 
-                <div className={`right_container ${currentPage === 'explore' ? 'explore-mode' : ''}`}>
+                <div className={`app-right-sidebar ${currentPage === 'explore' ? 'app-right-sidebar-explore-mode' : ''}`}>
                     {currentPage !== 'explore' && (
-                        <div className="search_block">
-                            <input type="search" className="search" placeholder="Поиск..." />
+                        <div className="app-search-wrapper">
+                            <input type="search" className="app-search-input" placeholder="Поиск..." />
                         </div>
                     )}
 
-                    <div className={`news_container ${currentPage === 'explore' ? 'explore-active' : ''}`}>
-                        <div className="news_name">
-                            <h3>Последние новости</h3>
-                            <div className="hr">___________________</div>
+                    <div className={`app-news-container ${currentPage === 'explore' ? 'app-news-container-explore' : ''}`}>
+                        <div className="app-news-header">
+                            <h3 className="app-news-title">Последние новости</h3>
+                            <div className="app-news-divider">___________________</div>
                         </div>
 
-                        <div className="news_block">
+                        <div className="app-news-list">
                             {[
                                 { title: 'Парень из Москвы собрал $1000000 инвестиций', date: '2 часа назад • IT • 356 постов' },
                                 { title: 'Девушка изобрела руку повар и приготовила ужин', date: '5 часов назад • DevOps • 106 постов' },
                                 { title: 'Парни из Краснодара разработали машину для сплава железа', date: '8 часов назад • DevOps • 582 постов' }
                             ].map((news, i) => (
-                                <div key={i} className="news_block_info">
-                                    <h4 className="news_block_info_name">{news.title}</h4>
-                                    <div className="info_date_news">
-                                        <p className="date">{news.date}</p>
+                                <div key={i} className="app-news-item">
+                                    <h4 className="app-news-item-title">{news.title}</h4>
+                                    <div className="app-news-item-meta">
+                                        <p className="app-news-item-date">{news.date}</p>
                                     </div>
                                 </div>
                             ))}
-                            <button className="news_btn">Ещё новости</button>
+                            <button className="app-news-more-btn">Ещё новости</button>
                         </div>
                     </div>
 
@@ -430,36 +526,31 @@ function App() {
                         onPrev={handlePrevTrack}
                     />
 
-                    <div className="track_block">
-                        <div className="track_name">
-                            <h3>За кем следить</h3>
-                            <div className="hr">___________________</div>
+                    <div className="app-suggestions-block">
+                        <div className="app-suggestions-header">
+                            <h3 className="app-suggestions-title">За кем следить</h3>
+                            <div className="app-suggestions-divider">___________________</div>
                         </div>
 
-                        <div className="track_items">
-                            {[
-                                { name: 'Павел Дуров', role: 'CEO Telegram', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBXjt3QBuQnsx3pKEV-UpT8XXychSKg9gij_WRs4OY1A&s=10' },
-                                { name: 'Дмитрий Нагиев', role: 'Актёр', img: 'https://avatars.mds.yandex.net/i?id=a0629e3b84c2ddbeeb6ee3a0d606f558563ec106-5171197-images-thumbs&n=13' },
-                                { name: 'Егор Крид', role: 'Певец', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSox8V0ukDUsoxpzJtiA_nZj9wTmVal5asFAoN2u8PZTw&s=10' },
-                                { name: 'Сергей Жуков', role: 'Певец', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRd-8LIrbnf-SCygSHIM6pWBiLbpeQk05V0mDx1GuoMyw&s=10' }
-                            ].map((person, i) => (
-                                <div key={i} className="track_block_info">
-                                    <img className="track_info_img" src={person.img} alt={person.name} />
-                                    <div className="track_info">
-                                        <h3>{person.name}</h3>
-                                        <p>{person.role}</p>
+                        <div className="app-suggestions-list">
+                            {suggestedUsers.map((person) => (
+                                <div key={person.id} className="app-suggestion-item">
+                                    <img className="app-suggestion-avatar" src={person.img} alt={person.name} />
+                                    <div className="app-suggestion-info">
+                                        <h3 className="app-suggestion-name">{person.name}</h3>
+                                        <p className="app-suggestion-role">{person.role}</p>
                                     </div>
-                                    <div className="track_btn_block">
-                                        <button className="track_btn">Следовать</button>
+                                    <div className="app-suggestion-btn-wrapper">
+                                        <button className="app-suggestion-follow-btn">Следовать</button>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <button className="news_btn">Показать ещё</button>
+                        <button className="app-suggestions-more-btn">Показать ещё</button>
                     </div>
 
-                    <div className="terms_block">
-                        <p className="terms">Условия · Конфиденциальность · Доступность · Информация о рекламе · Более <br/>© 2026 Astra · SyreksAI.</p>
+                    <div className="app-terms-block">
+                        <p className="app-terms-text">Условия · Конфиденциальность · Доступность · Информация о рекламе · Более <br/>© 2026 Astra · SyreksAI.</p>
                     </div>
                 </div>
             </div>
