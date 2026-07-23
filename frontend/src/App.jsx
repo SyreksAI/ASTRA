@@ -168,7 +168,8 @@ function Trending({suggestedUsers}) {
     )
 }
 
-function News_Explore({suggestedUsers}) {
+// КОМПОНЕНТ "Новости" (В EXPLORE)
+function News({ suggestedUsers}) {
     return (
         <div className="News_Explore">
             <div className="News_Explore_block">
@@ -219,6 +220,166 @@ function News_Explore({suggestedUsers}) {
     )
 }
 
+// КОМПОНЕНТ "Спорт" (В EXPLORE)
+function Sport({suggestedUsers}) {
+    return (
+        <div className="Sport">
+            <div className="img_poster_sport">
+                <img className='Sport_Poster' src="Sport_img.jpg" alt="" />
+            </div>
+            <div className="Sport_post">
+                <div className="Post_Sport_info">
+                    <h4>Твоё тело может всё, главное — убедить в этом свой мозг. 
+                        Единственная плохая тренировка — это та, которая не состоялась!
+                    </h4>
+                    <p>#Интересное #Спорт</p>
+                </div>
+                <div className="Post_Sport_info">
+                    <h4>Твоё тело может всё, главное — убедить в этом свой мозг. 
+                        Единственная плохая тренировка — это та, которая не состоялась!
+                    </h4>
+                    <p>#Интересное #Спорт</p>
+                </div>
+                <div className="Post_Sport_info">
+                    <h4>Твоё тело может всё, главное — убедить в этом свой мозг. 
+                        Единственная плохая тренировка — это та, которая не состоялась!
+                    </h4>
+                    <p>#Интересное #Спорт</p>
+                </div>
+                <div className="Post_Sport_info">
+                    <h4>Твоё тело может всё, главное — убедить в этом свой мозг. 
+                        Единственная плохая тренировка — это та, которая не состоялась!
+                    </h4>
+                    <p>#Интересное #Спорт</p>
+                </div>
+                <button className="trending-show-more-btn">Смотреть ещё</button>
+
+            </div>
+        </div>
+    )
+}
+
+// КОМПОНЕНТ "Видео" (В EXPLORE)
+function Video({ suggestedUsers }) {
+    return (
+        <div className="Video_block">
+            <div className="Video">
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div className="Video">
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div className="Video">
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div className="Video_post">
+                    <img src="Video.jpg" alt="" className='video'/>
+                    <div className="User_info_video">
+                        <img src="logo_post.jpg" alt="" className='logo_user_video'/>
+                        <div className="info_video_user">
+                            <p className='info_header_video'>Как понимает ИИ?</p>
+                            <p className='info_video'>ИИ помогает в мидецине...</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 // КОМПОНЕНТ СТРАНИЦЫ ИССЛЕДОВАНИЯ
 function ExplorePage({ suggestedUsers }) {
     const [searchQuery, setSearchQuery] = useState('');
@@ -239,11 +400,11 @@ function ExplorePage({ suggestedUsers }) {
             case 'В тренде':
                 return <Trending suggestedUsers={suggestedUsers} />;
             case 'Новости':
-                return <News_Explore suggestedUsers={suggestedUsers} />;
-
-            
-            // case 'Видео':
-            //     return <Video_Explore suggestedUsers={suggestedUsers} />;
+                return <News suggestedUsers={suggestedUsers} />;
+            case 'Спорт':
+                return <Sport suggestedUsers={suggestedUsers} />;
+            case 'Видео':
+                return <Video suggestedUsers={suggestedUsers} />;
         }
     }
 
@@ -378,6 +539,113 @@ function MusicPlayer({ tracks, currentTrack, isPlaying, onPlayToggle, onNext, on
     );
 }
 
+
+// КОМПОНЕНТ ЧАТА
+function ChatPage() {
+    const [messages, setMessages] = useState([
+        { id: 1, text: 'Привет! Как дела?', sender: 'other', time: '10:30' },
+        { id: 2, text: 'Всё отлично! А у тебя?', sender: 'me', time: '10:31' },
+        { id: 3, text: 'Тоже хорошо 😊', sender: 'other', time: '10:32' },
+    ]);
+    const [newMessage, setNewMessage] = useState('');
+    const [activeChat, setActiveChat] = useState(0);
+
+    const chats = [
+        { id: 0, name: 'Павел Дуров', avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBXjt3QBuQnsx3pKEV-UpT8XXychSKg9gij_WRs4OY1A&s=10', lastMessage: 'Тоже хорошо 😊', time: '10:32' },
+        { id: 1, name: 'Дмитрий Нагиев', avatar: 'https://avatars.mds.yandex.net/i?id=a0629e3b84c2ddbeeb6ee3a0d606f558563ec106-5171197-images-thumbs&n=13', lastMessage: 'Скоро увидимся!', time: '09:15' },
+        { id: 2, name: 'Егор Крид', avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSox8V0ukDUsoxpzJtiA_nZj9wTmVal5asFAoN2u8PZTw&s=10', lastMessage: 'Новая песня выходит завтра', time: '08:45' },
+        { id: 3, name: 'Сергей Жуков', avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRd-8LIrbnf-SCygSHIM6pWBiLbpeQk05V0mDx1GuoMyw&s=10', lastMessage: 'Спасибо за поддержку!', time: 'Вчера' },
+    ];
+
+    const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (newMessage.trim() === '') return;
+        
+        const newMsg = {
+            id: messages.length + 1,
+            text: newMessage,
+            sender: 'me',
+            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+        };
+        
+        setMessages([...messages, newMsg]);
+        setNewMessage('');
+    };
+
+    return (
+        <div className="chat-page">
+            <div className="chat-page-container">
+                {/* Список чатов */}
+                <div className="chat-list">
+                    <div className="search_chat">
+                        <input type="text" className='Chat-search-input' placeholder='Поиск контактов...'/>
+                    </div>
+                    
+                    {chats.map((chat, index) => (
+                        <div 
+                            key={chat.id}
+                            className={`chat-list-item ${activeChat === index ? 'chat-list-item-active' : ''}`}
+                            onClick={() => setActiveChat(index)}
+                        >
+                            <img src={chat.avatar} alt={chat.name} className="chat-list-avatar" />
+                            <div className="chat-list-info">
+                                <div className="chat-list-name">{chat.name}</div>
+                                <div className="chat-list-last-message">{chat.lastMessage}</div>
+                            </div>
+                            <div className="chat-list-time">{chat.time}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Окно чата */}
+                <div className="chat-window">
+                    {chats.length > 0 && (
+                        <>
+                            {/* Заголовок чата */}
+                            <div className="chat-window-header">
+                                <img src={chats[activeChat].avatar} alt={chats[activeChat].name} className="chat-window-avatar" />
+                                <div className="chat-window-user-info">
+                                    <div className="chat-window-user-name">{chats[activeChat].name}</div>
+                                    <div className="chat-window-user-status">В сети</div>
+                                </div>
+                            </div>
+
+                            {/* Сообщения */}
+                            <div className="chat-messages">
+                                {messages.map(msg => (
+                                    <div 
+                                        key={msg.id} 
+                                        className={`chat-message ${msg.sender === 'me' ? 'chat-message-me' : 'chat-message-other'}`}
+                                    >
+                                        <div className="chat-message-text">{msg.text}</div>
+                                        <div className="chat-message-time">{msg.time}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Поле ввода */}
+                            <form className="chat-input-form" onSubmit={handleSendMessage}>
+                                <input
+                                    type="text"
+                                    className="chat-input"
+                                    placeholder="Введите сообщение..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                />
+                                <button type="submit" className="chat-send-btn">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // КОМПОНЕНТ МЕНЮ
 function Menu({ items, activeItem, onItemClick }) {
     return (
@@ -398,6 +666,130 @@ function Menu({ items, activeItem, onItemClick }) {
         </nav>
     );
 }
+
+// ProfilePage
+function ProfilePage({ suggestedUsers }) {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeCategory, setActiveCategory] = useState('Для тебя');
+
+    const categories = [
+        { id: 'Посты', label: 'Посты' },
+        { id: 'Избранное', label: 'Избранное' },
+        { id: 'Плей лист', label: 'Плей лист' },
+        { id: 'Лайк', label: 'Лайк' }
+    ];
+
+    const renderContentSearch = () => {
+        switch(activeCategory) {
+            case 'Посты':
+                return <ForYou suggestedUsers={suggestedUsers} />;
+            case 'В тренде':
+                return <Trending suggestedUsers={suggestedUsers} />;
+        }
+    }
+
+    return (
+        <div className="Profile-Page">
+            <>
+                <img src="cover.png" alt="" className='cover'/>
+                <div className="block_info_user">
+                    <div className="User_profile_img">
+                        <img className='Profile_img' src="Profile_img.png" alt="" />
+                    </div>
+                    <div className="Edit_profile_btn">
+                        <button className='Btn_user_Edit_profile'>Edit Profile</button>
+                    </div>
+                </div>
+            </>
+            <div className="user_profile_info">
+                <p className='puser_profile_name'>Василий Жукин</p>
+                <p className='UserName_profile'>@Vasily</p>
+                <p className='info_user'>Студент Московского IT колледжа, направление РПО</p>
+
+                <div className="Activity_profile">
+                    <div className="Following">
+                        <label>1,253</label>
+                        <p>Подписчики</p>
+                    </div>
+                    <div className="Like">
+                        <label>1.5M</label>
+                        <p>Лайки</p>
+                    </div>
+                </div>
+
+                <div className="menu_profile_post">
+                    <div className="explore-page-header profile-page-header">
+                        <div className="profile-page-categories">
+                            {categories.map(category => (
+                                <p key={category.id}
+                                className={`explore-page-category-item ${activeCategory === category.id ? 'explore-page-category-active' : ''}`}
+                                onClick={() => setActiveCategory(category.id)}>
+                                {category.label}
+                                </p>
+                            ))}
+                        </div>
+                    </div>
+                {/* const [searchQuery, setSearchQuery] = useState('');
+                const [activeCategory, setActiveCategory] = useState('Для тебя');
+
+                const categories = [
+                    { id: 'Для тебя', label: 'Для тебя' },
+                    { id: 'В тренде', label: 'В тренде' },
+                    { id: 'Новости', label: 'Новости' },
+                    { id: 'Спорт', label: 'Спорт' },
+                    { id: 'Видео', label: 'Видео' },
+                ];
+
+                const renderContentSearch = () => {
+                    switch(activeCategory) {
+                        case 'Для тебя':
+                            return <ForYou suggestedUsers={suggestedUsers} />;
+                        case 'В тренде':
+                            return <Trending suggestedUsers={suggestedUsers} />;
+                        case 'Новости':
+                            return <News suggestedUsers={suggestedUsers} />;
+                        case 'Спорт':
+                            return <Sport suggestedUsers={suggestedUsers} />;
+                        case 'Видео':
+                            return <Video suggestedUsers={suggestedUsers} />;
+                    }
+                }
+
+                return (
+                    <div className="explore-page">
+                        <div className="explore-page-header">
+                            <input type="text" 
+                                placeholder="Поиск..." 
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="explore-page-search-input" />
+                            
+                            <div className="explore-page-categories">
+                                {categories.map(category => (
+                                    <p key={category.id}
+                                    className={`explore-page-category-item ${activeCategory === category.id ? 'explore-page-category-active' : ''}`}
+                                    onClick={() => setActiveCategory(category.id)}>
+                                    {category.label}
+                                    </p>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="explore-page-content">
+                            <div className="explore-page-main">
+                                {renderContentSearch()}
+                            </div>
+                        </div>
+                    </div>
+                ); */}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+
+
 
 // ГЛАВНЫЙ КОМПОНЕНТ APP
 function App() {
@@ -506,7 +898,11 @@ function App() {
             case 'explore': 
                 return <ExplorePage suggestedUsers={suggestedUsers} />;
             case 'notifications': 
-                return <NotificationsPage />;
+                return <NotificationsPage suggestedUsers={suggestedUsers} />;
+            case 'profile': 
+                return <ProfilePage suggestedUsers={suggestedUsers} />;
+            case 'chat':  // 👈 Добавьте эту строку
+                return <ChatPage />;
             default: 
                 return <UnderDevelopmentPage pageName={activeItem} />;
         }
@@ -518,7 +914,7 @@ function App() {
 
     return (
         <div className="app">
-            <div className="app-main-wrapper">
+            <div className={`app-main-wrapper ${currentPage === 'chat' ? 'app-main-wrapper-chat' : ''}`}>
                 <div className="app-left-sidebar">
                     <div className="app-left-sidebar-block">
                         <div className="app-logo-wrapper">
@@ -538,75 +934,83 @@ function App() {
                     </div>
                 </div>
                 
-                <div className="app-center-content">
+                <div className={`app-center-content ${currentPage === 'chat' ? 'app-center-content-chat' : ''}`}>
                     {renderContent()}
                 </div>
                 
-                <div className={`app-right-sidebar ${currentPage === 'explore' ? 'app-right-sidebar-explore-mode' : ''}`}>
-                    {currentPage !== 'explore' && (
+                <div className={`app-right-sidebar ${currentPage === 'explore' || currentPage === 'chat' ? 'app-right-sidebar-explore-mode' : ''} ${currentPage === 'chat' ? 'app-right-sidebar-hidden' : ''}`}>                    
+                
+                    {currentPage !== 'explore' && currentPage != 'chat' && (
                         <div className="app-search-wrapper">
                             <input type="search" className="app-search-input" placeholder="Поиск..." />
                         </div>
                     )}
 
-                    <div className={`app-news-container ${currentPage === 'explore' ? 'app-news-container-explore' : ''}`}>
-                        <div className="app-news-header">
-                            <h3 className="app-news-title">Последние новости</h3>
-                            <div className="app-news-divider">___________________</div>
-                        </div>
+                    {currentPage != 'chat' && (
+                        <div className={`app-news-container ${currentPage === 'explore' ? 'app-news-container-explore' : ''}`}>
+                            <div className="app-news-header">
+                                <h3 className="app-news-title">Последние новости</h3>
+                                <div className="app-news-divider">___________________</div>
+                            </div>
 
-                        <div className="app-news-list">
-                            {[
-                                { title: 'Парень из Москвы собрал $1000000 инвестиций', date: '2 часа назад • IT • 356 постов' },
-                                { title: 'Девушка изобрела руку повар и приготовила ужин', date: '5 часов назад • DevOps • 106 постов' },
-                                { title: 'Парни из Краснодара разработали машину для сплава железа', date: '8 часов назад • DevOps • 582 постов' }
-                            ].map((news, i) => (
-                                <div key={i} className="app-news-item">
-                                    <h4 className="app-news-item-title">{news.title}</h4>
-                                    <div className="app-news-item-meta">
-                                        <p className="app-news-item-date">{news.date}</p>
+                            <div className="app-news-list">
+                                {[
+                                    { title: 'Парень из Москвы собрал $1000000 инвестиций', date: '2 часа назад • IT • 356 постов' },
+                                    { title: 'Девушка изобрела руку повар и приготовила ужин', date: '5 часов назад • DevOps • 106 постов' },
+                                    { title: 'Парни из Краснодара разработали машину для сплава железа', date: '8 часов назад • DevOps • 582 постов' }
+                                ].map((news, i) => (
+                                    <div key={i} className="app-news-item">
+                                        <h4 className="app-news-item-title">{news.title}</h4>
+                                        <div className="app-news-item-meta">
+                                            <p className="app-news-item-date">{news.date}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                            <button className="app-news-more-btn">Ещё новости</button>
+                                ))}
+                                <button className="app-news-more-btn">Ещё новости</button>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    <MusicPlayer 
-                        tracks={tracks}
-                        currentTrack={currentTrack}
-                        isPlaying={isPlaying}
-                        onPlayToggle={handlePlayToggle}
-                        onNext={handleNextTrack}
-                        onPrev={handlePrevTrack}
-                    />
+                    {currentPage != 'chat' && (
+                        <MusicPlayer 
+                            tracks={tracks}
+                            currentTrack={currentTrack}
+                            isPlaying={isPlaying}
+                            onPlayToggle={handlePlayToggle}
+                            onNext={handleNextTrack}
+                            onPrev={handlePrevTrack}
+                        />
+                    )}
 
-                    <div className="app-suggestions-block">
-                        <div className="app-suggestions-header">
-                            <h3 className="app-suggestions-title">За кем следить</h3>
-                            <div className="app-suggestions-divider">___________________</div>
-                        </div>
+                    {currentPage != 'chat' && (
+                        <div className="app-suggestions-block">
+                            <div className="app-suggestions-header">
+                                <h3 className="app-suggestions-title">За кем следить</h3>
+                                <div className="app-suggestions-divider">___________________</div>
+                            </div>
 
-                        <div className="app-suggestions-list">
-                            {suggestedUsers.map((person) => (
-                                <div key={person.id} className="app-suggestion-item">
-                                    <img className="app-suggestion-avatar" src={person.img} alt={person.name} />
-                                    <div className="app-suggestion-info">
-                                        <h3 className="app-suggestion-name">{person.name}</h3>
-                                        <p className="app-suggestion-role">{person.role}</p>
+                            <div className="app-suggestions-list">
+                                {suggestedUsers.map((person) => (
+                                    <div key={person.id} className="app-suggestion-item">
+                                        <img className="app-suggestion-avatar" src={person.img} alt={person.name} />
+                                        <div className="app-suggestion-info">
+                                            <h3 className="app-suggestion-name">{person.name}</h3>
+                                            <p className="app-suggestion-role">{person.role}</p>
+                                        </div>
+                                        <div className="app-suggestion-btn-wrapper">
+                                            <button className="app-suggestion-follow-btn">Следовать</button>
+                                        </div>
                                     </div>
-                                    <div className="app-suggestion-btn-wrapper">
-                                        <button className="app-suggestion-follow-btn">Следовать</button>
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                            <button className="app-suggestions-more-btn">Показать ещё</button>
                         </div>
-                        <button className="app-suggestions-more-btn">Показать ещё</button>
-                    </div>
-
-                    <div className="app-terms-block">
-                        <p className="app-terms-text">Условия · Конфиденциальность · Доступность · Информация о рекламе · Более <br/>© 2026 Astra · SyreksAI.</p>
-                    </div>
+                    )}
+                    {currentPage != 'chat' && (
+                        <div className="app-terms-block">
+                            <p className="app-terms-text">Условия · Конфиденциальность · Доступность · Информация о рекламе · Более <br/>© 2026 Astra · SyreksAI.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

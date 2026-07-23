@@ -11,7 +11,7 @@ body {
   color: #0f1419;
 }
 
-// ГЛАВНЫЙ КОНТЕЙНЕР APP
+// ===== ГЛАВНЫЙ КОНТЕЙНЕР APP =====
 .app {
   display: flex;
   justify-content: center;
@@ -21,19 +21,19 @@ body {
 .app-main-wrapper {
   display: flex;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1460px;
   justify-content: center;
   padding-left: 260px;
 }
 
-// ЛЕВАЯ ПАНЕЛЬ (APP)
+// ===== ЛЕВАЯ ПАНЕЛЬ =====
 .app-left-sidebar {
   width: 260px;
   padding: 0 8px;
   height: 100vh;
   position: fixed;
   top: 0;
-  left: 0;
+  left: 123px;
   display: flex;
   flex-direction: column;
   background: #ffffff;
@@ -42,7 +42,6 @@ body {
   flex-shrink: 0;
   z-index: 100;
   overflow-y: auto;
-  margin-left: 140px;
 
   &::-webkit-scrollbar {
     width: 0;
@@ -72,7 +71,7 @@ body {
   margin-left: -7px;
 }
 
-// МЕНЮ (MENU)
+// ===== МЕНЮ =====
 .menu-nav {
   display: flex;
   flex-direction: column;
@@ -181,7 +180,7 @@ body {
   }
 }
 
-// ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ (APP)
+// ===== ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ =====
 .app-user-profile {
   margin-top: auto;
   padding: 10px 12px;
@@ -238,8 +237,7 @@ body {
   padding: 4px;
 }
 
-// ЦЕНТРАЛЬНАЯ ПАНЕЛЬ (APP)
-
+// ===== ЦЕНТРАЛЬНАЯ ПАНЕЛЬ =====
 .app-center-content {
   flex: 1;
   max-width: 650px;
@@ -256,7 +254,34 @@ body {
   -ms-overflow-style: none;
 }
 
-// СТРАНИЦА HOME
+// Когда открыт чат - убираем максимальную ширину
+.app-center-content-chat {
+  max-width: none !important;
+  width: 100% !important;
+  flex: 1 !important;
+  margin-left: 50px !important;
+  padding: 0 !important;
+}
+
+.app-center-content-chat .chat-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin-left: 0 !important;
+}
+
+.app-center-content-chat .chat-page-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+.app-center-content-chat .chat-window {
+  width: 100% !important;
+  flex: 1 !important;
+}
+
+// ===== СТРАНИЦА HOME =====
 .home-page-header {
   display: flex;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
@@ -308,7 +333,7 @@ body {
   padding: 0;
 }
 
-// СТИЛИ ДЛЯ ПОСТОВ (POST)
+// ===== СТИЛИ ДЛЯ ПОСТОВ =====
 .post-item {
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   padding: 12px 16px;
@@ -415,10 +440,10 @@ body {
   }
 }
 
-// ПРАВАЯ ПАНЕЛЬ (APP)
+// ===== ПРАВАЯ ПАНЕЛЬ =====
 .app-right-sidebar {
-  width: 350px;
-  padding: 0 8px;
+  width: 380px;
+  padding: 0 16px;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -441,20 +466,35 @@ body {
       display: none;
     }
   }
+
+  // Полностью скрываем правую панель на странице чата
+  &.app-right-sidebar-hidden {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+    flex: 0 0 0 !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+  }
 }
 
 .app-search-wrapper {
   padding: 8px 0;
-  padding-top: -20px;
-  position: fixed;
-  width: 335px;
+  position: sticky;
+  top: 0;
   background-color: #ffffff;
   z-index: 100;
+  width: 100%;
 }
 
 .app-search-input {
   padding: 12px 20px;
-  width: 99%;
+  width: 100%;
   border-radius: 20px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   font-size: 15px;
@@ -473,15 +513,15 @@ body {
   }
 }
 
-// НОВОСТИ (APP)
+// ===== НОВОСТИ =====
 .app-news-container {
-  margin-top: 60px;
+  margin-top: 16px;
   background-color: #ffffff;
   border: solid 1px rgba(0, 0, 0, 0.08);
   padding: 12px 0 0 0;
   border-radius: 16px;
   width: 100%;
-  overflow: block;
+  overflow: hidden;
 
   &.app-news-container-explore {
     margin-top: 7px;
@@ -552,7 +592,7 @@ body {
   }
 }
 
-// БЛОК "ЗА КЕМ СЛЕДИТЬ" (APP)
+// ===== БЛОК "ЗА КЕМ СЛЕДИТЬ" =====
 .app-suggestions-block {
   margin-top: 16px;
   background-color: #ffffff;
@@ -664,7 +704,7 @@ body {
   }
 }
 
-// ПОДВАЛ / TERMS (APP)
+// ===== ПОДВАЛ / TERMS =====
 .app-terms-block {
   margin-top: 16px;
   padding: 10px 16px;
@@ -677,7 +717,7 @@ body {
   line-height: 1.5;
 }
 
-// МУЗЫКАЛЬНЫЙ ПЛЕЕР (MUSIC-PLAYER)
+// ===== МУЗЫКАЛЬНЫЙ ПЛЕЕР =====
 .music-player {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -883,29 +923,30 @@ body {
   }
 }
 
-// СТРАНИЦА EXPLORE
+// ===== СТРАНИЦА EXPLORE =====
 .explore-page {
   padding-top: 0;
 }
 
 .explore-page-header {
-  position: fixed;
-  width: 650px;
-  margin-top: 0;
+  position: sticky;
+  top: 0;
+  width: 100%;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   z-index: 10;
+  padding: 8px 0;
 }
 
 .explore-page-search-input {
   padding: 12px 20px;
-  width: 98%;
+  width: 96%;
+  margin: 0 2%;
   border-radius: 20px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   font-size: 15px;
   background-color: #ffffff;
   transition: all 0.2s ease;
-  margin: 7px;
 
   &:focus {
     outline: none;
@@ -920,8 +961,6 @@ body {
   width: 100%;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   height: 53px;
-  position: sticky;
-  top: 0;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   z-index: 10;
@@ -931,9 +970,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 25px;
-  width: 20%;
-  font-size: 16px;
+  padding: 0 10px;
+  flex: 1;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -941,7 +980,7 @@ body {
   position: relative;
   height: 100%;
   font-family: Arial, Helvetica, sans-serif;
-  margin: 0;
+  text-align: center;
 
   &:hover {
     background-color: rgba(15, 20, 25, 0.06);
@@ -957,7 +996,7 @@ body {
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 56px;
+      width: 40px;
       height: 4px;
       background: #1d9bf0;
       border-radius: 9999px;
@@ -966,7 +1005,7 @@ body {
 }
 
 .explore-page-content {
-  padding-top: 110px;
+  padding-top: 0;
 }
 
 .explore-page-main {
@@ -977,7 +1016,7 @@ body {
   }
 }
 
-// КОМПОНЕНТ FOR-YOU
+// ===== КОМПОНЕНТ FOR-YOU =====
 .for-you-page {
   width: 100%;
 }
@@ -1006,6 +1045,7 @@ body {
 
   &:hover {
     background-color: rgba(15, 20, 25, 0.08);
+    cursor: pointer;
   }
 }
 
@@ -1085,8 +1125,6 @@ body {
   object-fit: cover;
 }
 
-
-
 .for-you-suggestion-info {
   flex: 1;
   display: flex;
@@ -1141,7 +1179,7 @@ body {
   }
 }
 
-// КОМПОНЕНТ TRENDING
+// ===== КОМПОНЕНТ TRENDING =====
 .trending-page {
   width: 100%;
 }
@@ -1150,7 +1188,6 @@ body {
   display: flex;
   flex-wrap: wrap;
   width: 100%;
-  
   gap: 10px;
   justify-content: center;
 }
@@ -1209,6 +1246,7 @@ body {
 
   &:hover {
     background-color: rgba(15, 20, 25, 0.08);
+    cursor: pointer;
   }
 }
 
@@ -1244,13 +1282,14 @@ body {
   }
 }
 
-// СТРАНИЦА УВЕДОМЛЕНИЙ (NOTIFICATIONS)
+// ===== СТРАНИЦА УВЕДОМЛЕНИЙ =====
 .notifications-page {
   width: 100%;
 }
 
 .notifications-page-list {
   padding: 0;
+  
 }
 
 .notifications-page-item {
@@ -1259,6 +1298,7 @@ body {
 
   &:hover {
     background-color: rgba(15, 20, 25, 0.06);
+    cursor: pointer;
   }
 
   &.notifications-page-unread {
@@ -1286,7 +1326,7 @@ body {
   color: #536471;
 }
 
-// СТРАНИЦА В РАЗРАБОТКЕ
+// ===== СТРАНИЦА В РАЗРАБОТКЕ =====
 .under-development-page {
   display: flex;
   flex-direction: column;
@@ -1320,25 +1360,816 @@ body {
   50% { transform: scale(1.1); }
 }
 
+// ===== КОМПОНЕНТ NEWS (EXPLORE) =====
+.News_Explore {
+  width: 100%;
+}
+
+.News_Explore_block {
+  width: 100%;
+}
+
 .new_news_explore {
   width: 100%;
   padding: 15px;
   font-family: Arial, Helvetica, sans-serif;
   border-bottom: 1px solid rgba(15, 20, 25, 0.06);
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+  }
+
+  h4 {
+    color: #373737d5;
+    font-weight: 500;
+  }
+
+  p {
+    margin-top: 5px;
+    font-size: 15px;
+    font-weight: 600;
+  }
 }
 
-.new_news_explore:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+// ===== КОМПОНЕНТ SPORT =====
+.Sport {
+  width: 100%;
+}
+
+.img_poster_sport {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.Sport_Poster {
+  width: auto;
+  height: 350px;
+  margin: 40px;
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+.Sport_post {
+  width: 100%;
+}
+
+.Post_Sport_info {
+  width: 100%;
+  padding: 15px;
+  font-family: Arial, Helvetica, sans-serif;
+  border-bottom: 1px solid rgba(15, 20, 25, 0.06);
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+  }
+
+  h4 {
+    color: #373737d5;
+    font-weight: 500;
+  }
+
+  p {
+    margin-top: 5px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+
+// ===== КОМПОНЕНТ VIDEO =====
+.Video_block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.Video {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.Video_post {
+  margin: 0;
   cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
 }
 
-.new_news_explore h4 {
-  color: #373737d5;
+.video {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.logo_user_video {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.User_info_video {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.info_video_user {
+  font-size: 16px;
+}
+
+.info_header_video {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.info_video {
+  font-size: 11px;
+}
+
+// ===== СТРАНИЦА ПРОФИЛЯ =====
+.Profile-Page {
+  width: 100%;
+}
+
+.cover {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  opacity: 1;
+}
+
+.block_info_user {
+  display: flex;
+  align-items: flex-start;
+  padding: 0 16px;
+}
+
+.User_profile_img {
+  margin-left: 20px;
+  margin-top: -50px;
+}
+
+.Profile_img {
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.Edit_profile_btn {
+  margin-left: auto;
+  margin-top: 12px;
+
+  .Btn_user_Edit_profile {
+    padding: 10px 50px;
+    border-radius: 50px;
+    background-color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid #00000020;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #000000;
+      color: #ffffff;
+    }
+  }
+}
+
+.user_profile_info {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+.puser_profile_name {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.UserName_profile {
+  font-size: 17px;
+  margin-top: -2px;
+  color: #00000070;
+}
+
+.info_user {
+  margin-top: 7px;
+  font-weight: 600;
+}
+
+.Activity_profile {
+  margin-top: 10px;
+  display: flex;
+  gap: 15px;
+
+  .Following,
+  .Like {
+    display: flex;
+    align-items: center;
+
+    label {
+      font-weight: 600;
+      margin-right: 5px;
+    }
+
+    p {
+      color: #00000060;
+      font-weight: 600;
+    }
+  }
+}
+
+// ===== МЕНЮ В ПРОФИЛЕ =====
+.profile-page-categories {
+  display: flex;
+  width: 103.1%;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  height: 53px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.profile-page-category-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 10px;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #536471;
+  position: relative;
+  height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+
+  &:hover {
+    background-color: rgba(15, 20, 25, 0.06);
+  }
+
+  &.profile-page-category-active {
+    color: #0f1419;
+    font-weight: 700;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 4px;
+      background: #1d9bf0;
+      border-radius: 9999px;
+    }
+  }
+}
+
+.menu_profile_post {
+  margin-top: 16px;
+}
+
+.profile-page-header {
+  margin-left: -20px;
+}
+
+// ===== СТРАНИЦА ЧАТА =====
+.chat-page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.chat-page-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.chat-page-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f1419;
+}
+
+.chat-page-container {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 70px);
+  overflow: hidden;
+  width: 100%;
+}
+
+// === Список чатов ===
+.chat-list {
+  width: 280px;
+  min-width: 200px;
+  max-width: 280px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+  background: #ffffff;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.chat-list-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  gap: 12px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &.chat-list-item-active {
+    background-color: rgba(29, 155, 240, 0.08);
+    border-left: 4px solid #1d9bf0;
+  }
+}
+
+.chat-list-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.chat-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-list-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f1419;
+  line-height: 1.3;
+}
+
+.chat-list-last-message {
+  font-size: 14px;
+  color: #536471;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-list-time {
+  font-size: 12px;
+  color: #536471;
+  flex-shrink: 0;
+}
+
+// === Окно чата ===
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  min-width: 0;
+  width: 100%;
+}
+
+.chat-window-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  gap: 12px;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.chat-window-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chat-window-user-info {
+  flex: 1;
+}
+
+.chat-window-user-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1419;
+}
+
+.chat-window-user-status {
+  font-size: 13px;
+  color: #00ba7c;
   font-weight: 500;
 }
 
-.new_news_explore p {
-  margin-top: 5px;
+// === Сообщения ===
+.chat-messages {
+  flex: 1;
+  padding: 16px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fafbfc;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+  }
+}
+
+.chat-message {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  word-wrap: break-word;
+  position: relative;
+  animation: messageSlideIn 0.2s ease;
+
+  &.chat-message-me {
+    align-self: flex-end;
+    background: #1d9bf0;
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+
+    .chat-message-time {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  &.chat-message-other {
+    align-self: flex-start;
+    background: #e8edf2;
+    color: #0f1419;
+    border-bottom-left-radius: 4px;
+
+    .chat-message-time {
+      color: #536471;
+    }
+  }
+}
+
+.chat-message-text {
   font-size: 15px;
-  font-weight: 600;
+  line-height: 1.4;
+}
+
+.chat-message-time {
+  font-size: 11px;
+  margin-top: 4px;
+  text-align: right;
+  opacity: 0.7;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// === Поле ввода ===
+.chat-input-form {
+  display: flex;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 9999px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  background: #f7f9fa;
+  min-height: 44px;
+
+  &:focus {
+    border-color: #1d9bf0;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(29, 155, 240, 0.15);
+  }
+
+  &::placeholder {
+    color: #8b98a5;
+  }
+}
+
+.chat-send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #1d9bf0;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #1a8cd8;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// ===== МЕДИА-ЗАПРОСЫ =====
+@media (max-width: 1200px) {
+  .app-main-wrapper {
+    padding-left: 0;
+  }
+
+  .app-left-sidebar {
+    width: 72px;
+    padding: 0 4px;
+
+    .menu-item-label,
+    .app-user-info,
+    .app-user-more {
+      display: none;
+    }
+
+    .menu-item {
+      padding: 0;
+      justify-content: center;
+      min-width: 50px;
+      width: 100%;
+    }
+
+    .app-user-profile {
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .app-logo {
+      width: 40px;
+      margin: 0 auto;
+    }
+
+    .menu-item-create-btn {
+      font-size: 13px;
+      padding: 10px;
+      min-height: 40px;
+    }
+  }
+
+  .app-right-sidebar {
+    display: none !important;
+    width: 0 !important;
+    flex: 0 0 0 !important;
+  }
+
+  .app-center-content {
+    max-width: 100%;
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-left-sidebar {
+    width: 60px;
+    padding: 0 4px;
+  }
+
+  .explore-page-category-item {
+    font-size: 12px;
+    padding: 0 6px;
+  }
+
+  .Video {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .Sport_Poster {
+    height: 200px;
+    margin: 20px;
+  }
+
+  .post-item-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .app-user-profile {
+    padding: 4px;
+  }
+
+  .chat-list {
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-left-sidebar {
+    width: 50px;
+    padding: 0 2px;
+
+    .menu-item-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .menu-item {
+      min-height: 40px;
+    }
+
+    .menu-item-create-btn {
+      font-size: 11px;
+      padding: 6px;
+      min-height: 32px;
+    }
+  }
+
+  .Video {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-page-categories {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .explore-page-category-item {
+    flex: 0 0 auto;
+    padding: 0 16px;
+    font-size: 13px;
+  }
+
+  .block_info_user {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .Edit_profile_btn {
+    margin: 10px auto 0;
+  }
+
+  .User_profile_img {
+    margin-left: 0;
+    margin-top: -40px;
+  }
+
+  .Activity_profile {
+    justify-content: center;
+  }
+
+  .user_profile_info {
+    text-align: center;
+    margin-left: 0;
+  }
+
+  .chat-list {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    height: auto;
+    max-height: 150px;
+  }
+
+  .chat-page-container {
+    flex-direction: column;
+  }
+}
+
+
+// ===== ЦЕНТРАЛЬНАЯ ПАНЕЛЬ =====
+.app-center-content {
+  flex: 1;
+  max-width: 650px;
+  min-width: 300px;
+  height: 100vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+// Когда открыт чат - убираем максимальную ширину и отступы
+.app-center-content-chat {
+  max-width: none !important;
+  width: 100% !important;
+  flex: 1 !important;
+  margin-left: 0 !important; // Убираем 50px и 85px
+  padding: 0 !important;
+}
+
+.app-center-content-chat .chat-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin-left: 0 !important;
+}
+
+.app-center-content-chat .chat-page-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+.app-center-content-chat .chat-window {
+  width: 100% !important;
+  flex: 1 !important;
+}
+
+// Когда открыт чат - убираем максимальную ширину у обертки
+.app-main-wrapper-chat {
+  max-width: none !important;
+  width: 100% !important;
+  padding-right: 0 !important;
+  margin-left: 123px;
+}
+
+
+
+.Chat-search-input {
+  padding: 12px 20px;
+  margin: 10px;
+  width: 93%;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 15px;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #000000;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.059);
+  }
+
+  &::placeholder {
+    color: #8b98a5;
+  }
 }
