@@ -21,7 +21,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
     passlib[bcrypt]==1.7.4 \
     python-multipart==0.0.6 \
     pydantic-settings==2.1.0 \
-    python-dotenv==1.0.0
+    python-dotenv==1.0.0 \
+    psycopg2-binary==2.9.9
 
 COPY backend/app/ ./app/
 

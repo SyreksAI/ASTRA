@@ -1,8 +1,7 @@
-// src/components/pages/HomePage.jsx
-import React, { useState } from 'react';
-import { PostCard } from '../post/PostCard';
+import React from 'react';
+import { PostCard } from "../post/PostCard";
 
-export function HomePage({ posts = [], activeTab = 'Для тебя', setActiveTab = () => {} }) {
+export function HomePage({ posts, activeTab, setActiveTab }) {
     return (
         <div className="home-page">
             <div className="home-page-header">
@@ -15,12 +14,10 @@ export function HomePage({ posts = [], activeTab = 'Для тебя', setActiveT
                 ))}
             </div>
             <div className="home-page-feed">
-                {posts.length === 0 ? (
-                    <div className="empty-state">Нет постов</div>
-                ) : (
-                    posts.map(post => <PostCard key={post.id} post={post} />)
-                )}
+                {posts.map(post => <PostCard key={post.id} post={post} />)}
             </div>
         </div>
     );
 }
+
+export default HomePage;

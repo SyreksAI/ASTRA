@@ -13,14 +13,10 @@ import { NotificationsPage } from './components/pages/NotificationsPage';
 import { UnderDevelopmentPage } from './components/pages/UnderDevelopmentPage';
 
 function App() {
-    const [activeItem, setActiveItem] = useState('Главная');
+    const [activeItem, setActiveItem] = useState('Главная');  // только один раз
     const [activeTab, setActiveTab] = useState('Для тебя');
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTrack, setCurrentTrack] = useState(0);
-
-    // ===== Получаем текущий путь =====
-    const location = useLocation();
-    const currentPath = location.pathname;
 
     // ===== ДАННЫЕ =====
     const menuItems = [
@@ -119,12 +115,12 @@ function App() {
     const handleNextTrack = () => setCurrentTrack(prev => (prev + 1) % tracks.length);
     const handlePrevTrack = () => setCurrentTrack(prev => (prev - 1 + tracks.length) % tracks.length);
 
-    // ===== Определяем, какие страницы =====
-    const isChatPage = currentPath === '/chat';
-    const isExplorePage = currentPath === '/explore';
-
+    const location = useLocation();
+    const isChatPage = location.pathname === '/chat';
+    
     return (
         <div className="app">
+            {/* Единый главный контейнер с динамическим классом для чата */}
             <div className={`app-main-wrapper ${isChatPage ? 'app-main-wrapper-chat' : ''}`}>
                 <div className="app-left-sidebar">
                     <div className="app-left-sidebar-block">
@@ -145,6 +141,7 @@ function App() {
                     </div>
                 </div>
                 
+                {/* Центральная колонка с динамическим классом для чата */}
                 <div className={`app-center-content ${isChatPage ? 'app-center-content-chat' : ''}`}>
                     <Routes>
                         <Route path="/" element={<HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />} />
@@ -156,74 +153,68 @@ function App() {
                     </Routes>
                 </div>
                 
-                {/* Правая панель — скрывается на чате */}
-                <div className={`app-right-sidebar ${isExplorePage || isChatPage ? 'app-right-sidebar-explore-mode' : ''} ${isChatPage ? 'app-right-sidebar-hidden' : ''}`}>
-                    {!isExplorePage && !isChatPage && (
-                        <div className="app-search-wrapper">
-                            <input type="search" className="app-search-input" placeholder="Поиск..." />
+                {/* Правая панель скрывается на странице чата */}
+                <div className={`app-right-sidebar ${isChatPage ? 'app-right-sidebar-hidden' : ''}`}>
+                    <div className="app-search-wrapper">
+                        <input type="search" className="app-search-input" placeholder="Поиск..." />
+                    </div>
+
+                    <div className="app-news-container">
+                        <div className="app-news-header">
+                            <h3 className="app-news-title">Последние новости</h3>
+                            <div className="app-news-divider">___________________</div>
                         </div>
-                    )}
-
-                    {!isChatPage && (
-                        <>
-                            <div className={`app-news-container ${isExplorePage ? 'app-news-container-explore' : ''}`}>
-                                <div className="app-news-header">
-                                    <h3 className="app-news-title">Последние новости</h3>
-                                    <div className="app-news-divider">___________________</div>
+                        <div className="app-news-list">
+                            {[
+                                { title: 'Парень из Москвы собрал $1000000 инвестиций', date: '2 часа назад • IT • 356 постов' },
+                                { title: 'Девушка изобрела руку повар и приготовила ужин', date: '5 часов назад • DevOps • 106 постов' },
+                                { title: 'Парни из Краснодара разработали машину для сплава железа', date: '8 часов назад • DevOps • 582 постов' }
+                            ].map((news, i) => (
+                                <div key={i} className="app-news-item">
+                                    <h4 className="app-news-item-title">{news.title}</h4>
+                                    <div className="app-news-item-meta">
+                                        <p className="app-news-item-date">{news.date}</p>
+                                    </div>
                                 </div>
-                                <div className="app-news-list">
-                                    {[
-                                        { title: 'Парень из Москвы собрал $1000000 инвестиций', date: '2 часа назад • IT • 356 постов' },
-                                        { title: 'Девушка изобрела руку повар и приготовила ужин', date: '5 часов назад • DevOps • 106 постов' },
-                                        { title: 'Парни из Краснодара разработали машину для сплава железа', date: '8 часов назад • DevOps • 582 постов' }
-                                    ].map((news, i) => (
-                                        <div key={i} className="app-news-item">
-                                            <h4 className="app-news-item-title">{news.title}</h4>
-                                            <div className="app-news-item-meta">
-                                                <p className="app-news-item-date">{news.date}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <button className="app-news-more-btn">Ещё новости</button>
-                                </div>
-                            </div>
+                            ))}
+                            <button className="app-news-more-btn">Ещё новости</button>
+                        </div>
+                    </div>
 
-                            <MusicPlayer 
-                                tracks={tracks}
-                                currentTrack={currentTrack}
-                                isPlaying={isPlaying}
-                                onPlayToggle={handlePlayToggle}
-                                onNext={handleNextTrack}
-                                onPrev={handlePrevTrack}
-                            />
+                    <MusicPlayer 
+                        tracks={tracks}
+                        currentTrack={currentTrack}
+                        isPlaying={isPlaying}
+                        onPlayToggle={handlePlayToggle}
+                        onNext={handleNextTrack}
+                        onPrev={handlePrevTrack}
+                    />
 
-                            <div className="app-suggestions-block">
-                                <div className="app-suggestions-header">
-                                    <h3 className="app-suggestions-title">За кем следить</h3>
-                                    <div className="app-suggestions-divider">___________________</div>
+                    <div className="app-suggestions-block">
+                        <div className="app-suggestions-header">
+                            <h3 className="app-suggestions-title">За кем следить</h3>
+                            <div className="app-suggestions-divider">___________________</div>
+                        </div>
+                        <div className="app-suggestions-list">
+                            {suggestedUsers.map((person) => (
+                                <div key={person.id} className="app-suggestion-item">
+                                    <img className="app-suggestion-avatar" src={person.img} alt={person.name} />
+                                    <div className="app-suggestion-info">
+                                        <h3 className="app-suggestion-name">{person.name}</h3>
+                                        <p className="app-suggestion-role">{person.role}</p>
+                                    </div>
+                                    <div className="app-suggestion-btn-wrapper">
+                                        <button className="app-suggestion-follow-btn">Следовать</button>
+                                    </div>
                                 </div>
-                                <div className="app-suggestions-list">
-                                    {suggestedUsers.map((person) => (
-                                        <div key={person.id} className="app-suggestion-item">
-                                            <img className="app-suggestion-avatar" src={person.img} alt={person.name} />
-                                            <div className="app-suggestion-info">
-                                                <h3 className="app-suggestion-name">{person.name}</h3>
-                                                <p className="app-suggestion-role">{person.role}</p>
-                                            </div>
-                                            <div className="app-suggestion-btn-wrapper">
-                                                <button className="app-suggestion-follow-btn">Следовать</button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <button className="app-suggestions-more-btn">Показать ещё</button>
-                            </div>
+                            ))}
+                        </div>
+                        <button className="app-suggestions-more-btn">Показать ещё</button>
+                    </div>
 
-                            <div className="app-terms-block">
-                                <p className="app-terms-text">Условия · Конфиденциальность · Доступность · Информация о рекламе · Более <br/>© 2026 Astra · SyreksAI.</p>
-                            </div>
-                        </>
-                    )}
+                    <div className="app-terms-block">
+                        <p className="app-terms-text">Условия · Конфиденциальность · Доступность · Информация о рекламе · Более <br/>© 2026 Astra · SyreksAI.</p>
+                    </div>
                 </div>
             </div>
         </div>
