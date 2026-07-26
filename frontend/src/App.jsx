@@ -11,12 +11,16 @@ import { ProfilePage } from './components/pages/ProfilePage';
 import { ChatPage } from './components/pages/ChatPage';
 import { NotificationsPage } from './components/pages/NotificationsPage';
 import { UnderDevelopmentPage } from './components/pages/UnderDevelopmentPage';
+import { ModalPost } from './components/modal/Modal';
 
 function App() {
-    const [activeItem, setActiveItem] = useState('Главная');  // только один раз
+    const [activeItem, setActiveItem] = useState('Главная');
     const [activeTab, setActiveTab] = useState('Для тебя');
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTrack, setCurrentTrack] = useState(0);
+
+    // 1. ДОБАВИЛИ СОСТОЯНИЕ МОДАЛЬНОГО ОКНА НА УРОВЕНЬ ПРИЛОЖЕНИЯ
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // ===== ДАННЫЕ =====
     const menuItems = [
@@ -74,8 +78,8 @@ function App() {
             handle: '@durov',
             avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBXjt3QBuQnsx3pKEV-UpT8XXychSKg9gij_WRs4OY1A&s=10',
             time: '2 ч',
-            content: 'Telegram достиг 900 миллионов активных пользователей! 🚀',
             image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSq8LU4scR56nOOivsXLOFFWlbx7UNEvvB8PF4qJqRVYA&s=10',
+            content: 'Telegram достиг 900 миллионов активных пользователей! 🚀',
             likes: 1234,
             comments: 89,
             retweets: 234
@@ -128,7 +132,12 @@ function App() {
                             <img src="/logo.jpg" alt="Логотип" className="app-logo" />
                         </div>
                         
-                        <Menu items={menuItems} activeItem={activeItem} onItemClick={handleMenuItemClick} />
+                        <Menu  
+                            items={menuItems} 
+                            activeItem={activeItem} 
+                            onItemClick={handleMenuItemClick} 
+                            onOpenModal={() => setIsModalOpen(true)}
+                        />
 
                         <div className="app-user-profile">
                             <div className="app-user-avatar">A</div>
@@ -144,6 +153,7 @@ function App() {
                 {/* Центральная колонка с динамическим классом для чата */}
                 <div className={`app-center-content ${isChatPage ? 'app-center-content-chat' : ''}`}>
                     <Routes>
+
                         <Route path="/" element={<HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />} />
                         <Route path="/explore" element={<ExplorePage suggestedUsers={suggestedUsers} />} />
                         <Route path="/profile" element={<ProfilePage suggestedUsers={suggestedUsers} />} />
@@ -217,6 +227,7 @@ function App() {
                     </div>
                 </div>
             </div>
+            {isModalOpen && <ModalPost onClose={() => setIsModalOpen(false)} />}
         </div>
     );
 }

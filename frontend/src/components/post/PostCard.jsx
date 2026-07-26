@@ -29,8 +29,8 @@ export function PostCard({ post }) {
                 <div className="post-item-time">{postTime}</div>
             </div>
             
-            <div className="post-item-content">{post.content}</div>
             {post.image && <img src={post.image} alt="Post" className="post-item-image" />}
+            <div className="post-item-content">{post.content}</div>
             
             <div className="post-item-actions">
                 <button className="post-item-action-btn">

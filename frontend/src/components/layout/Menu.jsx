@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export function Menu({ items, activeItem, onItemClick }) {
+export function Menu({ items, activeItem, onItemClick, onOpenModal }) {
     return (
         <nav className="menu-nav">
             {items.map(item => (
@@ -16,8 +16,9 @@ export function Menu({ items, activeItem, onItemClick }) {
                     <span className="menu-item-label">{item.label}</span>
                 </Link>
             ))}
+            
             <div className="menu-item menu-item-create">
-                <button className="menu-item-create-btn" onClick={() => alert('Создание нового поста')}>
+                <button className="menu-item-create-btn" onClick={onOpenModal}>
                     Создать
                 </button>
             </div>

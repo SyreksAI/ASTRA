@@ -1,5 +1,6 @@
 import React from 'react';
 import { PostCard } from "../post/PostCard";
+// import { ModalPost } from './components/modal/Modal';
 
 export function HomePage({ posts, activeTab, setActiveTab }) {
     return (
