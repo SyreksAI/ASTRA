@@ -24,13 +24,13 @@ function App() {
         { id: 'Исследовать', icon: '/menu/search.png', label: 'Исследовать', path: '/explore' },
         { id: 'Уведомления', icon: '/menu/notifications.png', label: 'Уведомления', path: '/notifications' },
         { id: 'Чат', icon: '/menu/chat.png', label: 'Чат', path: '/chat' },
-        { id: 'Stella', icon: '/menu/AI.png', label: 'Stella', path: '/stella' },
-        { id: 'Закладки', icon: '/menu/bookmarks.png', label: 'Закладки', path: '/bookmarks' },
-        { id: 'Студия создателей', icon: '/menu/project.png', label: 'Студия Создателей', path: '/studio' },
-        { id: 'Команда', icon: '/menu/command.png', label: 'Команда', path: '/team' },
-        { id: 'Премиум', icon: '/menu/premium.png', label: 'Премиум', path: '/premium' },
+        // { id: 'Stella', icon: '/menu/AI.png', label: 'Stella', path: '/stella' },
+        // { id: 'Закладки', icon: '/menu/bookmarks.png', label: 'Закладки', path: '/bookmarks' },
+        // { id: 'Студия создателей', icon: '/menu/project.png', label: 'Студия Создателей', path: '/studio' },
+        // { id: 'Команда', icon: '/menu/command.png', label: 'Команда', path: '/team' },
+        // { id: 'Премиум', icon: '/menu/premium.png', label: 'Премиум', path: '/premium' },
         { id: 'Профиль', icon: '/menu/profile.png', label: 'Профиль', path: '/profile' },
-        { id: 'Более', icon: '/menu/better.png', label: 'Более', path: '/more' }
+        // { id: 'Более', icon: '/menu/better.png', label: 'Более', path: '/more' }
     ];
 
     const suggestedUsers = [
