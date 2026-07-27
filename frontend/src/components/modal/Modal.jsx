@@ -1,7 +1,8 @@
 // src/components/modal/Modal.jsx
 import React, { useState, useRef } from 'react';
 
-export function ModalPost({ onClose }) {
+// ИСПРАВЛЕНО: Добавили onAddPost в фигурные скобки ниже
+export function ModalPost({ onClose, onAddPost }) {
     const [text, setText] = useState('');
     const [image, setImage] = useState(null);          // для хранения файла
     const [preview, setPreview] = useState(null);      // для превью
@@ -20,8 +21,14 @@ export function ModalPost({ onClose }) {
     };
 
     const handleSubmit = () => {
-        // логика отправки поста (пока просто закрываем)
-        console.log({ text, image });
+        if (!text.trim() && !image) return;
+
+        // Теперь это сработает, так как мы приняли onAddPost сверху
+        onAddPost({
+            text: text,
+            image: preview
+        });
+
         onClose();
     };
 
@@ -53,6 +60,7 @@ export function ModalPost({ onClose }) {
                         ref={fileInputRef}
                         onChange={handleFileChange}
                         className="hidden-file-input"
+                        id='ImgPostModal'
                     />
                 </div>
                 {/* Поле ввода текста */}
@@ -61,13 +69,14 @@ export function ModalPost({ onClose }) {
                     placeholder="Что нового?"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
+                    id='TextPostModal'
                 />
 
                 {/* Кнопка публикации */}
                 <button 
                     className="modal-submit-btn" 
                     onClick={handleSubmit}
-                    disabled={!text && !image}
+                    disabled={!text.trim() && !image}
                 >
                     Опубликовать
                 </button>

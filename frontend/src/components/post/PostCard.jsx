@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { timeAgo } from '../utils/dateUtils'; // Импортируем функцию
 
 export function PostCard({ post }) {
     const [liked, setLiked] = useState(false);
@@ -11,12 +12,13 @@ export function PostCard({ post }) {
         setLikesCount(prev => newLiked ? prev + 1 : prev - 1);
     };
 
-    // Данные из API (или fallback, если чего-то нет)
     const author = post.author || {};
     const authorName = author.full_name || 'Пользователь';
     const authorHandle = author.username || '@user';
     const authorAvatar = author.avatar || '/default-avatar.png';
-    const postTime = post.created_at ? new Date(post.created_at).toLocaleString('ru-RU') : '';
+    
+    // ИСПОЛЬЗУЕМ timeAgo ВМЕСТО toLocaleString
+    const postTime = post.created_at ? timeAgo(post.created_at) : '';
 
     return (
         <div className="post-item">

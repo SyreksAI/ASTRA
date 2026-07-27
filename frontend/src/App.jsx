@@ -71,13 +71,13 @@ function App() {
         }
     ];
 
-    const posts = [
+    const [posts, setPosts] = useState([
         {
             id: 1,
             name: 'Павел Дуров',
             handle: '@durov',
             avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBXjt3QBuQnsx3pKEV-UpT8XXychSKg9gij_WRs4OY1A&s=10',
-            time: '2 ч',
+            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
             image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSq8LU4scR56nOOivsXLOFFWlbx7UNEvvB8PF4qJqRVYA&s=10',
             content: 'Telegram достиг 900 миллионов активных пользователей! 🚀',
             likes: 1234,
@@ -89,7 +89,7 @@ function App() {
             name: 'Дмитрий Нагиев',
             handle: '@nagiev_official',
             avatar: 'https://avatars.mds.yandex.net/i?id=a0629e3b84c2ddbeeb6ee3a0d606f558563ec106-5171197-images-thumbs&n=13',
-            time: '3 ч',
+            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
             content: 'Любите жизнь и будьте счастливы! 🎭✨',
             image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8RR9PGSamrNwfPqAcEho4_T4K-O8F3h7gJdpRXJNIsQ&s=10',
             likes: 5678,
@@ -101,14 +101,36 @@ function App() {
             name: 'Сергей Жуков',
             handle: '@zhukov_official',
             avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRd-8LIrbnf-SCygSHIM6pWBiLbpeQk05V0mDx1GuoMyw&s=10',
-            time: '2 ч',
+            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
             content: 'Новый клип выходит завтра! 🎵❤️',
             image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl48WhTRo7M2KPyCbWMTh5P-7hPCM0D6m5cR4NjqBG_A&s=10',
             likes: 7890,
             comments: 456,
             retweets: 890
         }
-    ];
+    ]);
+
+    // ===== НОВЫЙ ОБРАБОТЧИК: Функция добавления поста =====
+    const handleAddPost = (newPostData) => {
+        const newPost = {
+            id: Date.now(),
+            created_at: new Date().toISOString(),
+            content: newPostData.text,
+            image: newPostData.image, // Сюда падает строка base64 картинки из модалки
+            likes_count: 0,
+            comments_count: 0,
+            
+            // Заполняем структуру автора вашими данными из блока профиля под меню
+            author: {
+                full_name: 'Алексей',
+                username: '@alexey',
+                avatar: '/default-avatar.png' // Сюда можно поставить ссылку на аватар Алексея
+            }
+        };
+
+        // Вставляем новый пост в самое начало ленты
+        setPosts((prevPosts) => [newPost, ...prevPosts]);
+    };
 
     // ===== ОБРАБОТЧИКИ =====
     const handleMenuItemClick = (item) => {
@@ -227,7 +249,12 @@ function App() {
                     </div>
                 </div>
             </div>
-            {isModalOpen && <ModalPost onClose={() => setIsModalOpen(false)} />}
+            {isModalOpen && (
+                <ModalPost 
+                    onClose={() => setIsModalOpen(false)} 
+                    onAddPost={handleAddPost} 
+                />
+            )}
         </div>
     );
 }
