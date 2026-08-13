@@ -12,6 +12,7 @@ import { ChatPage } from './components/pages/ChatPage';
 import { NotificationsPage } from './components/pages/NotificationsPage';
 import { UnderDevelopmentPage } from './components/pages/UnderDevelopmentPage';
 import { ModalPost } from './components/modal/Modal';
+import { MusicPage } from './components/pages/MusicPage'; // Добавьте импорт
 
 function App() {
     const [activeItem, setActiveItem] = useState('Главная');
@@ -19,7 +20,6 @@ function App() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTrack, setCurrentTrack] = useState(0);
 
-    // 1. ДОБАВИЛИ СОСТОЯНИЕ МОДАЛЬНОГО ОКНА НА УРОВЕНЬ ПРИЛОЖЕНИЯ
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // ===== ДАННЫЕ =====
@@ -28,13 +28,8 @@ function App() {
         { id: 'Исследовать', icon: '/menu/search.png', label: 'Исследовать', path: '/explore' },
         { id: 'Уведомления', icon: '/menu/notifications.png', label: 'Уведомления', path: '/notifications' },
         { id: 'Чат', icon: '/menu/chat.png', label: 'Чат', path: '/chat' },
-        // { id: 'Stella', icon: '/menu/AI.png', label: 'Stella', path: '/stella' },
-        // { id: 'Закладки', icon: '/menu/bookmarks.png', label: 'Закладки', path: '/bookmarks' },
-        // { id: 'Студия создателей', icon: '/menu/project.png', label: 'Студия Создателей', path: '/studio' },
-        // { id: 'Команда', icon: '/menu/command.png', label: 'Команда', path: '/team' },
-        // { id: 'Премиум', icon: '/menu/premium.png', label: 'Премиум', path: '/premium' },
+        { id: 'Музыка', icon: '/menu/music.png', label: 'Музыка', path: '/music' },
         { id: 'Профиль', icon: '/menu/profile.png', label: 'Профиль', path: '/profile' },
-        // { id: 'Более', icon: '/menu/better.png', label: 'Более', path: '/more' }
     ];
 
     const suggestedUsers = [
@@ -110,29 +105,23 @@ function App() {
         }
     ]);
 
-    // ===== НОВЫЙ ОБРАБОТЧИК: Функция добавления поста =====
     const handleAddPost = (newPostData) => {
         const newPost = {
             id: Date.now(),
             created_at: new Date().toISOString(),
             content: newPostData.text,
-            image: newPostData.image, // Сюда падает строка base64 картинки из модалки
+            image: newPostData.image,
             likes_count: 0,
             comments_count: 0,
-            
-            // Заполняем структуру автора вашими данными из блока профиля под меню
             author: {
                 full_name: 'Алексей',
                 username: '@alexey',
-                avatar: '/default-avatar.png' // Сюда можно поставить ссылку на аватар Алексея
+                avatar: '/default-avatar.png'
             }
         };
-
-        // Вставляем новый пост в самое начало ленты
         setPosts((prevPosts) => [newPost, ...prevPosts]);
     };
 
-    // ===== ОБРАБОТЧИКИ =====
     const handleMenuItemClick = (item) => {
         setActiveItem(item.id);
     };
@@ -143,10 +132,10 @@ function App() {
 
     const location = useLocation();
     const isChatPage = location.pathname === '/chat';
+    const isMusicPage = location.pathname === '/music'; // Проверка для страницы музыки
     
     return (
         <div className="app">
-            {/* Единый главный контейнер с динамическим классом для чата */}
             <div className={`app-main-wrapper ${isChatPage ? 'app-main-wrapper-chat' : ''}`}>
                 <div className="app-left-sidebar">
                     <div className="app-left-sidebar-block">
@@ -172,20 +161,19 @@ function App() {
                     </div>
                 </div>
                 
-                {/* Центральная колонка с динамическим классом для чата */}
                 <div className={`app-center-content ${isChatPage ? 'app-center-content-chat' : ''}`}>
                     <Routes>
-
                         <Route path="/" element={<HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />} />
                         <Route path="/explore" element={<ExplorePage suggestedUsers={suggestedUsers} />} />
                         <Route path="/profile" element={<ProfilePage suggestedUsers={suggestedUsers} />} />
-                        <Route path="/chat" element={<ChatPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
+                        <Route path="/chat" element={<ChatPage />} />
+                        <Route path="/music" element={<MusicPage tracks={tracks} />} />
                         <Route path="*" element={<UnderDevelopmentPage pageName="Страница не найдена" />} />
                     </Routes>
                 </div>
                 
-                {/* Правая панель скрывается на странице чата */}
+                {/* Правая панель - скрывается ТОЛЬКО на странице чата */}
                 <div className={`app-right-sidebar ${isChatPage ? 'app-right-sidebar-hidden' : ''}`}>
                     <div className="app-search-wrapper">
                         <input type="search" className="app-search-input" placeholder="Поиск..." />
@@ -213,14 +201,17 @@ function App() {
                         </div>
                     </div>
 
-                    <MusicPlayer 
-                        tracks={tracks}
-                        currentTrack={currentTrack}
-                        isPlaying={isPlaying}
-                        onPlayToggle={handlePlayToggle}
-                        onNext={handleNextTrack}
-                        onPrev={handlePrevTrack}
-                    />
+                    {/* Плеер скрывается ТОЛЬКО на странице музыки */}
+                    {!isMusicPage && (
+                        <MusicPlayer 
+                            tracks={tracks}
+                            currentTrack={currentTrack}
+                            isPlaying={isPlaying}
+                            onPlayToggle={handlePlayToggle}
+                            onNext={handleNextTrack}
+                            onPrev={handlePrevTrack}
+                        />
+                    )}
 
                     <div className="app-suggestions-block">
                         <div className="app-suggestions-header">

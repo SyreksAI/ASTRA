@@ -10,6 +10,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/BD:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -17,6 +18,7 @@ services:
       retries: 5
     networks:
       - astra_network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -32,22 +34,25 @@ services:
       retries: 5
     networks:
       - astra_network
+    restart: unless-stopped
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: astra-app:latest  # ← ИСПОЛЬЗУЕМ ГОТОВЫЙ ОБРАЗ
     container_name: astra_app
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DB_HOST: postgres
+      DB_PORT: 5432
       REDIS_URL: redis://redis:6379/0
       SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG:-True}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     ports:
-      - "8000:8000"   # Backend API
-      - "80:80"       # Frontend через Nginx
+      - "80:80"
+      - "8000:8000"
     volumes:
-      - ./backend:/app/backend
-      - ./frontend:/app/frontend
       - uploads_data:/app/uploads
     depends_on:
       postgres:
@@ -56,6 +61,7 @@ services:
         condition: service_healthy
     networks:
       - astra_network
+    restart: unless-stopped
 
 volumes:
   postgres_data:

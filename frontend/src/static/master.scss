@@ -2314,3 +2314,288 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ===== СТРАНИЦА MUSIC =====
+.music-page {
+  padding: 0;
+  width: 100%;
+  background: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// Поиск
+.music-search {
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.music-search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 15px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  outline: none;
+
+  &:focus {
+    border-color: #1d9bf0;
+    box-shadow: 0 0 0 2px rgba(29, 155, 240, 0.15);
+  }
+
+  &::placeholder {
+    color: #8b98a5;
+  }
+}
+
+// Кнопка "Мой плейлист"
+.music-playlist-btn-wrapper {
+  padding: 0;
+  position: fixed;
+  top: 70px;        // отступ от верха
+  left: 830px;
+  z-index: 100;     // поверх всего
+  display: flex;
+  justify-content: flex-end;
+}
+
+.music-playlist-btn {
+  padding: 12px 18px;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.15s ease;
+
+  svg { flex-shrink: 0; }
+
+  &:hover { background: #1a1a1a; transform: scale(0.98); }
+  &:active { transform: scale(0.95); }
+}
+
+// Диск по центру
+.music-player-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.music-disc-container {
+  position: relative;
+  width: 240px;
+  height: 240px;
+}
+
+.music-disc {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #000000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+
+  &.music-disc-spin {
+    animation: spinDisc 6s linear infinite;
+  }
+}
+
+@keyframes spinDisc {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.music-disc-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// Чёрная кнопка Play по центру диска
+.music-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease;
+
+  &:hover { transform: translate(-50%, -50%) scale(1.06); }
+  &:active { transform: translate(-50%, -50%) scale(0.95); }
+}
+
+// Сетка обложек (4 колонки, как на фото)
+.music-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px 28px;
+  padding: 24px 16px 32px;
+}
+
+.music-grid-item {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  .music-grid-cover {
+    display: block;
+    border-radius: 10px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  &:hover .music-grid-cover { transform: scale(1.03); opacity: 0.9; }
+
+  &.active .music-grid-cover { box-shadow: 0 0 0 3px #1d9bf0; }
+}
+
+// Нижний плеер (прилипает к низу колонки)
+.music-bottom-player {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 20;
+}
+
+.player-track {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  .player-track-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .player-track-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f1419;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.player-skip-btn {
+  border: none;
+  background: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  opacity: 0.8;
+
+  &:hover { opacity: 1; transform: scale(1.05); }
+}
+
+.player-play-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:hover { transform: scale(1.05); }
+  &:active { transform: scale(0.95); }
+}
+
+.player-actions {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.player-action-btn {
+  border: none;
+  background: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+
+  &:hover { transform: scale(1.08); }
+}
+
+// Адаптивность
+@media (max-width: 768px) {
+  .music-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .music-disc-container { width: 200px; height: 200px; }
+  .music-play-btn { width: 60px; height: 60px; }
+}
+
+@media (max-width: 480px) {
+  .music-grid { grid-template-columns: repeat(2, 1fr); }
+  .music-disc-container { width: 160px; height: 160px; }
+  .music-play-btn { width: 52px; height: 52px; }
+  .player-controls { gap: 10px; }
+  .player-play-btn { width: 42px; height: 42px; }
+}
