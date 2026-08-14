@@ -29,7 +29,7 @@ COPY backend/app/ ./app/
 # ============================================
 # СТАДИЯ 2: ФРОНТЕНД
 # ============================================
-FROM node:18-alpine AS frontend
+FROM node:20-alpine AS frontend
 
 WORKDIR /app
 
