@@ -37,7 +37,12 @@ services:
     restart: unless-stopped
 
   app:
-    image: astra-app:latest  # ← ИСПОЛЬЗУЕМ ГОТОВЫЙ ОБРАЗ
+    # Убрали жесткую привязку к image, если хотим форсировать сборку локально.
+    # Оставляем build контекст. Имя образа задаем явно.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: astra-app:latest
     container_name: astra_app
     environment:
       POSTGRES_USER: ${POSTGRES_USER}

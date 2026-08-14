@@ -1,15 +1,14 @@
-# ============================================
-# СТАДИЯ 1: БЭКЕНД
-# ============================================
 FROM python:3.11-slim AS backend
 
 WORKDIR /app
 
+# Установка системных зависимостей
 RUN apt-get update && apt-get install -y gcc libpq-dev && rm -rf /var/lib/apt/lists/*
 
 COPY backend/pyproject.toml .
 
-# Устанавливаем зависимости ЯВНО
+# Установка Python зависимостей
+# Важно: устанавливаем именно в /usr/local, чтобы скопировать потом
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
     fastapi==0.104.1 \
@@ -27,7 +26,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY backend/app/ ./app/
 
 # ============================================
-# СТАДИЯ 2: ФРОНТЕНД
+# СТАДИЯ 2: ФРОНТЕНД (Сборка UI)
 # ============================================
 FROM node:18-alpine AS frontend
 
@@ -40,34 +39,41 @@ COPY frontend/ ./
 RUN npm run build
 
 # ============================================
-# СТАДИЯ 3: ФИНАЛЬНЫЙ ОБРАЗ
+# СТАДИЯ 3: ФИНАЛЬНЫЙ ОБРАЗ (Runtime)
 # ============================================
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Устанавливаем Nginx
+# Установка Nginx и очистка кэша
 RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
 
-# КОПИРУЕМ ВЕСЬ PYTHON (включая site-packages) из стадии backend
+# 1. Копируем site-packages (библиотеки)
 COPY --from=backend /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=backend /usr/local/bin /usr/local/bin
 
-# Копируем код бэкенда
+# 2. Копируем исполняемые файлы (uvicorn, pip и т.д.)
+# Копируем только нужное, чтобы не ломать системный путь
+COPY --from=backend /usr/local/bin/uvicorn /usr/local/bin/uvicorn
+COPY --from=backend /usr/local/bin/pip /usr/local/bin/pip
+COPY --from=backend /usr/local/bin/python /usr/local/bin/python
+
+# 3. Копируем код приложения
 COPY --from=backend /app /app
 
-# Копируем собранный фронтенд
+# 4. Копируем собранный фронтенд
 COPY --from=frontend /app/dist /app/frontend-build
 
-# Копируем конфиг Nginx
+# 5. Копируем конфиг Nginx
 COPY nginx/nginx.conf /etc/nginx/conf.d/app.conf
 
 # Скрипт запуска
+# Используем exec form для корректной передачи сигналов, но здесь нужен shell form для фона
 RUN echo '#!/bin/bash\n\
+echo "Starting Nginx..."\n\
 nginx -g "daemon off;" &\n\
+echo "Starting Uvicorn..."\n\
 cd /app\n\
-uvicorn app.main:app --host 0.0.0.0 --port 8000\n\
-wait' > /app/start.sh && chmod +x /app/start.sh
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000' > /app/start.sh && chmod +x /app/start.sh
 
 EXPOSE 80 8000
 
