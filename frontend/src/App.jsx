@@ -12,7 +12,8 @@ import { ChatPage } from './components/pages/ChatPage';
 import { NotificationsPage } from './components/pages/NotificationsPage';
 import { UnderDevelopmentPage } from './components/pages/UnderDevelopmentPage';
 import { ModalPost } from './components/modal/Modal';
-import { MusicPage } from './components/pages/MusicPage'; // Добавьте импорт
+import { MusicPage } from './components/pages/MusicPage';
+import { ModalMore } from './components/modal/ModalMore';
 
 function App() {
     const [activeItem, setActiveItem] = useState('Главная');
@@ -21,6 +22,18 @@ function App() {
     const [currentTrack, setCurrentTrack] = useState(0);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    // В App.jsx, в начале компонента:
+    const [isDarkTheme, setIsDarkTheme] = useState(() => {
+        return document.body.classList.contains('dark-theme');
+    });
+
+    // Функция для переключения темы (если ещё нет)
+    const toggleTheme = () => {
+        setIsDarkTheme(!isDarkTheme);
+        document.body.classList.toggle('dark-theme');
+    };
 
     // ===== ДАННЫЕ =====
     const menuItems = [
@@ -30,6 +43,12 @@ function App() {
         { id: 'Чат', icon: '/menu/chat.png', label: 'Чат', path: '/chat' },
         { id: 'Музыка', icon: '/menu/music.png', label: 'Музыка', path: '/music' },
         { id: 'Профиль', icon: '/menu/profile.png', label: 'Профиль', path: '/profile' },
+        // { id: 'Stella', icon: '/menu/AI.png', label: 'Stella', path: '/stella' },
+        // { id: 'Закладки', icon: '/menu/bookmarks.png', label: 'Закладки', path: '/bookmarks' },
+        // { id: 'Студия создателей', icon: '/menu/project.png', label: 'Студия Создателей', path: '/studio' },
+        // { id: 'Команда', icon: '/menu/command.png', label: 'Команда', path: '/team' },
+        // { id: 'Премиум', icon: '/menu/premium.png', label: 'Премиум', path: '/premium' },
+        { id: 'Более', icon: '/menu/more.png', label: 'Более', path: '/more' }
     ];
 
     const suggestedUsers = [
@@ -134,13 +153,18 @@ function App() {
     const isChatPage = location.pathname === '/chat';
     const isMusicPage = location.pathname === '/music'; // Проверка для страницы музыки
     
+    
     return (
         <div className="app">
             <div className={`app-main-wrapper ${isChatPage ? 'app-main-wrapper-chat' : ''}`}>
                 <div className="app-left-sidebar">
                     <div className="app-left-sidebar-block">
                         <div className="app-logo-wrapper">
-                            <img src="/logo.jpg" alt="Логотип" className="app-logo" />
+                            <img 
+                                src={isDarkTheme ? '/logoDark.png' : '/logo.jpg'} 
+                                alt="Логотип" 
+                                className={`app-logo ${isDarkTheme ? 'app-logo-dark' : ''}`}
+                            />
                         </div>
                         
                         <Menu  
@@ -148,6 +172,7 @@ function App() {
                             activeItem={activeItem} 
                             onItemClick={handleMenuItemClick} 
                             onOpenModal={() => setIsModalOpen(true)}
+                            onOpenSettings={() => setIsSettingsOpen(true)}
                         />
 
                         <div className="app-user-profile">
@@ -244,6 +269,14 @@ function App() {
                 <ModalPost 
                     onClose={() => setIsModalOpen(false)} 
                     onAddPost={handleAddPost} 
+                />
+            )}
+
+            {isSettingsOpen && (
+                <ModalMore 
+                    onClose={() => setIsSettingsOpen(false)}
+                    toggleTheme={toggleTheme}
+                    isDarkTheme={isDarkTheme}
                 />
             )}
         </div>

@@ -2599,3 +2599,1097 @@ body {
   .player-controls { gap: 10px; }
   .player-play-btn { width: 42px; height: 42px; }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ===== МОДАЛКА НАСТРОЕК (БЕЛАЯ) =====
+.settings-modal {
+
+    
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 0;
+    // overflow: hidden;
+    animation: modalFadeIn 0.2s ease;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    pointer-events: auto;
+}
+
+.settings-modal-close {
+    background: none;
+    border: none;
+    color: #8b98a5;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.06);
+        color: #0f1419;
+    }
+}
+
+// .settings-modal-body {
+//     padding: 20px 24px 24px;
+// }
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    padding: 15px;
+
+    &:hover {
+      background-color: rgba(15, 20, 25, 0.08);
+    }
+
+    span {
+        font-size: 18px;
+        color: #0f1419;
+        font-weight: 600;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+}
+
+.settings-switch {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+    cursor: pointer;
+
+    input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .settings-slider {
+        position: absolute;
+        inset: 0;
+        background: #d1d5db;
+        border-radius: 26px;
+        transition: 0.3s;
+
+        &::before {
+            content: '';
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+    }
+
+    input:checked + .settings-slider {
+        background: #6c5ce7;
+    }
+
+    input:checked + .settings-slider::before {
+        transform: translateX(22px);
+    }
+}
+
+.settings-select {
+    background: #f3f4f6;
+    color: #0f1419;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+
+    &:focus {
+        border-color: #6c5ce7;
+    }
+}
+
+.settings-btn-outline {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: #0f1419;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.04);
+        border-color: #6c5ce7;
+    }
+}
+
+.settings-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.06);
+    margin: 16px 0;
+}
+
+.settings-btn-danger {
+    width: 100%;
+    padding: 12px;
+    color: #000000;
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(15, 20, 25, 0.08);
+    }
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.menu-item-settings {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 25px 10px 14px;
+    border-radius: 50px;
+    transition: all 0.2s;
+    color: #0f1419;
+    text-decoration: none;
+
+    &:hover {
+      background-color: rgba(15, 20, 25, 0.015);
+    }
+}
+
+.settings-overlay {
+    background: transparent !important;
+    pointer-events: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============================================================
+// ===== ТЁМНАЯ ТЕМА В СТИЛЕ X.COM =====
+// ============================================================
+
+body.dark-theme {
+    // ----- ОСНОВНЫЕ ЦВЕТА X.COM -----
+    --bg-primary: #050107;
+    --bg-secondary: #16181c;
+    --bg-hover: #1d1f23;
+    --bg-elevated: #1d1f23;
+    --text-primary: #e7e9ea;
+    --text-secondary: #71767b;
+    --text-tertiary: #8b98a5;
+    --border-color: #2f3336;
+    --accent: #a21ad8; //34d399 // 
+    --accent-hover: #a21ad8;
+    --like-color: #f91880;
+    --retweet-color: #00ba7c;
+
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+
+    // ----- ЛЕВАЯ ПАНЕЛЬ -----
+    .app-left-sidebar {
+        background: var(--bg-primary);
+        border-right: 1px solid var(--border-color);
+    }
+
+    // .app-logo {
+    //     filter: brightness(0) invert(1);
+    // }
+
+    // ----- МЕНЮ -----
+    .menu-item {
+        color: var(--text-primary);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        &.menu-item-active {
+            color: var(--text-primary);
+        }
+    }
+
+    .menu-item-icon {
+        filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) brightness(100%) contrast(100%);
+    }
+
+    .menu-item-create-btn {
+        background-color: var(--accent);
+
+        &:hover {
+            background-color: var(--accent-hover);
+        }
+    }
+
+    // ----- ПРОФИЛЬ -----
+    .app-user-name {
+        color: var(--text-primary);
+    }
+
+    .app-user-handle {
+        color: var(--text-secondary);
+    }
+
+    .app-user-more {
+        color: var(--text-secondary);
+    }
+
+    .app-user-avatar {
+        background: linear-gradient(135deg, var(--accent), #0a8cdb);
+    }
+
+    .app-user-profile:hover {
+        background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    // ----- ЦЕНТР -----
+    .app-center-content {
+        background: var(--bg-primary);
+    }
+
+    // ----- HOME -----
+    .home-page-header {
+        background: rgba(0, 0, 0, 0.95);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .home-page-header-link {
+        color: var(--text-secondary);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        &.home-page-header-link-active {
+            color: var(--text-primary);
+
+            &::after {
+                background: var(--accent);
+            }
+        }
+    }
+
+    // ----- ПОСТЫ -----
+    .post-item {
+        border-bottom: 1px solid var(--border-color);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+    }
+
+    .post-item-user-name {
+        color: var(--text-primary);
+    }
+
+    .post-item-user-handle,
+    .post-item-time {
+        color: var(--text-secondary);
+    }
+
+    .post-item-content {
+        color: var(--text-primary);
+    }
+
+    .post-item-action-btn {
+        color: var(--text-secondary);
+
+        &:hover {
+            color: var(--accent);
+            background-color: rgba(29, 155, 240, 0.08);
+        }
+
+        &.post-item-liked {
+            color: var(--like-color);
+
+            &:hover {
+                background-color: rgba(249, 24, 128, 0.08);
+            }
+        }
+    }
+
+    // ----- ПРАВАЯ ПАНЕЛЬ -----
+    .app-right-sidebar {
+        background: var(--bg-primary);
+        border-left: 1px solid var(--border-color);
+    }
+
+    .app-search-wrapper {
+        background: var(--bg-primary);
+    }
+
+    .app-search-input {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+
+        &:focus {
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+        }
+
+        &::placeholder {
+            color: var(--text-secondary);
+        }
+    }
+
+    // ----- НОВОСТИ -----
+    .app-news-container {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .app-news-title {
+        color: var(--text-primary);
+    }
+
+    .app-news-divider {
+        color: var(--border-color);
+    }
+
+    .app-news-item {
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+    }
+
+    .app-news-item-title {
+        color: var(--text-primary);
+    }
+
+    .app-news-item-meta,
+    .app-news-item-date {
+        color: var(--text-secondary);
+    }
+
+    .app-news-more-btn {
+        color: var(--accent);
+
+        &:hover {
+            background-color: rgba(29, 155, 240, 0.08);
+        }
+    }
+
+    // ----- ЗА КЕМ СЛЕДИТЬ -----
+    .app-suggestions-block {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .app-suggestions-title {
+        color: var(--text-primary);
+    }
+
+    .app-suggestions-divider {
+        color: var(--border-color);
+    }
+
+    .app-suggestion-item {
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+    }
+
+    .app-suggestion-name {
+        color: var(--text-primary);
+    }
+
+    .app-suggestion-role {
+        color: var(--text-secondary);
+    }
+
+    .app-suggestion-follow-btn {
+        background: var(--text-primary);
+        color: var(--bg-primary);
+
+        &:hover {
+            background: #d1d5db;
+        }
+    }
+
+    .app-suggestions-more-btn {
+        color: var(--accent);
+
+        &:hover {
+            background-color: rgba(29, 155, 240, 0.08);
+        }
+    }
+
+    // ----- ПОДВАЛ -----
+    .app-terms-text {
+        color: var(--text-secondary);
+    }
+
+    // ----- МУЗЫКАЛЬНЫЙ ПЛЕЕР -----
+    .music-player {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .music-player-title-wrapper svg {
+        color: var(--text-primary);
+    }
+
+    .music-player-title {
+        color: var(--text-primary);
+    }
+
+    .music-player-status {
+        color: var(--text-secondary);
+        background: var(--bg-primary);
+    }
+
+    .music-player-current-track {
+        background: var(--bg-primary);
+    }
+
+    .music-player-track-title {
+        color: var(--text-primary);
+    }
+
+    .music-player-track-artist {
+        color: var(--text-secondary);
+    }
+
+    .music-player-track-album {
+        color: var(--text-tertiary);
+    }
+
+    .music-player-progress-bar {
+        background: var(--border-color);
+    }
+
+    .music-player-progress-fill {
+        background: var(--accent);
+    }
+
+    .music-player-time {
+        color: var(--text-secondary);
+    }
+
+    .music-player-control-btn {
+        color: var(--text-secondary);
+
+        &:hover {
+            color: var(--accent);
+            background: rgba(29, 155, 240, 0.08);
+        }
+    }
+
+    .music-player-play-btn {
+        background: var(--accent);
+
+        &:hover {
+            background: var(--accent-hover);
+        }
+
+        &.music-player-playing {
+            background: var(--like-color);
+
+            &:hover {
+                background: #d4145a;
+            }
+        }
+    }
+
+    // ----- EXPLORE -----
+    .explore-page-header {
+        background: rgba(0, 0, 0, 0.95);
+    }
+
+    .explore-page-search-input {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+
+        &:focus {
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+        }
+    }
+
+    .explore-page-categories {
+        background: rgba(0, 0, 0, 0.95);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .explore-page-category-item {
+        color: var(--text-secondary);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        &.explore-page-category-active {
+            color: var(--text-primary);
+
+            &::after {
+                background: var(--accent);
+            }
+        }
+    }
+
+    // ----- ПРОФИЛЬ -----
+    .Profile-Page {
+        background: var(--bg-primary);
+    }
+
+    .Profile_img {
+        border-color: var(--bg-primary);
+    }
+
+    .Btn_user_Edit_profile {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+
+        &:hover {
+            background: var(--bg-secondary);
+        }
+    }
+
+    .puser_profile_name {
+        color: var(--text-primary);
+    }
+
+    .UserName_profile {
+        color: var(--text-secondary);
+    }
+
+    .info_user {
+        color: var(--text-primary);
+    }
+
+    .Activity_profile {
+        .Following label,
+        .Like label {
+            color: var(--text-primary);
+        }
+
+        .Following p,
+        .Like p {
+            color: var(--text-secondary);
+        }
+    }
+
+    .profile-page-categories {
+        background: rgba(0, 0, 0, 0.95);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .profile-page-category-item {
+        color: var(--text-secondary);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        &.profile-page-category-active {
+            color: var(--text-primary);
+
+            &::after {
+                background: var(--accent);
+            }
+        }
+    }
+
+    // ----- ЧАТ -----
+    .chat-page {
+        background: var(--bg-primary);
+    }
+
+    .chat-page-header {
+        background: rgba(0, 0, 0, 0.95);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .chat-page-title {
+        color: var(--text-primary);
+    }
+
+    .chat-list {
+        background: var(--bg-primary);
+        border-right: 1px solid var(--border-color);
+    }
+
+    .chat-list-item {
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        &.chat-list-item-active {
+            background-color: rgba(29, 155, 240, 0.12);
+            border-left: 4px solid var(--accent);
+        }
+    }
+
+    .chat-list-name {
+        color: var(--text-primary);
+    }
+
+    .chat-list-last-message {
+        color: var(--text-secondary);
+    }
+
+    .chat-list-time {
+        color: var(--text-tertiary);
+    }
+
+    .chat-window {
+        background: var(--bg-primary);
+    }
+
+    .chat-window-header {
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .chat-window-user-name {
+        color: var(--text-primary);
+    }
+
+    .chat-window-user-status {
+        color: var(--accent);
+    }
+
+    .chat-messages {
+        background: var(--bg-primary);
+    }
+
+    .chat-message {
+        &.chat-message-me {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        &.chat-message-other {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+    }
+
+    .chat-input-form {
+        background: var(--bg-primary);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .chat-input {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+
+        &:focus {
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+        }
+
+        &::placeholder {
+            color: var(--text-secondary);
+        }
+    }
+
+    .chat-send-btn {
+        background: var(--accent);
+
+        &:hover {
+            background: var(--accent-hover);
+        }
+    }
+
+    // ----- УВЕДОМЛЕНИЯ -----
+    .notifications-page-item {
+        border-bottom: 1px solid var(--border-color);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        &.notifications-page-unread {
+            border-left: 4px solid var(--accent);
+        }
+    }
+
+    .notifications-page-text {
+        color: var(--text-primary);
+    }
+
+    .notifications-page-time {
+        color: var(--text-secondary);
+    }
+
+    // ----- MUSIC -----
+    .music-page {
+        background: var(--bg-primary);
+    }
+
+    .music-search {
+        background: var(--bg-primary);
+    }
+
+    .music-search-input {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+
+        &:focus {
+            border-color: var(--accent);
+        }
+
+        &::placeholder {
+            color: var(--text-secondary);
+        }
+    }
+
+    .music-playlist-btn {
+        background: var(--accent);
+
+        &:hover {
+            background: var(--accent-hover);
+        }
+    }
+
+    .music-disc {
+        border-color: var(--accent);
+    }
+
+    .music-play-btn {
+        background: var(--accent);
+    }
+
+    .music-bottom-player {
+        background: var(--bg-primary);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .player-track-title {
+        color: var(--text-primary);
+    }
+
+    .player-play-btn {
+        background: var(--accent);
+
+        &:hover {
+            background: var(--accent-hover);
+        }
+    }
+
+    // ----- МОДАЛКА НАСТРОЕК -----
+    .settings-modal {
+        background: var(--bg-secondary);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+    }
+
+    .settings-item {
+        border-bottom: 1px solid var(--border-color);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        span {
+            color: var(--text-primary);
+        }
+    }
+
+    .settings-modal-close {
+        color: var(--text-secondary);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+    }
+
+    .settings-btn-danger {
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+
+        &:hover {
+            background-color: rgba(239, 68, 68, 0.15);
+        }
+    }
+
+    .settings-divider {
+        background: var(--border-color);
+    }
+
+    .settings-btn-outline {
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent);
+        }
+    }
+
+    .settings-select {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+
+        &:focus {
+            border-color: var(--accent);
+        }
+    }
+
+    .settings-switch {
+        .settings-slider {
+            background: var(--border-color);
+
+            &::before {
+                background: white;
+            }
+        }
+
+        input:checked + .settings-slider {
+            background: var(--accent);
+        }
+    }
+
+    // ----- ОСТАЛЬНЫЕ КОМПОНЕНТЫ -----
+    .News_Explore,
+    .Sport,
+    .Video_block,
+    .for-you-page,
+    .trending-page {
+        background: var(--bg-primary);
+    }
+
+    .new_news_explore,
+    .Post_Sport_info,
+    .for-you-news-item,
+    .trending-news-item {
+        border-bottom: 1px solid var(--border-color);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        h4 {
+            color: var(--text-secondary);
+        }
+
+        p {
+            color: var(--text-primary);
+        }
+    }
+
+    .for-you-page-title,
+    .trending-news-title {
+        color: var(--text-primary);
+    }
+
+    .for-you-news-text,
+    .trending-news-text {
+        color: var(--text-primary);
+    }
+
+    .for-you-news-meta,
+    .trending-news-meta {
+        color: var(--text-secondary);
+    }
+
+    .for-you-show-more-btn,
+    .trending-show-more-btn {
+        color: var(--accent);
+
+        &:hover {
+            background-color: rgba(29, 155, 240, 0.08);
+        }
+    }
+
+    .for-you-suggestions {
+        background: var(--bg-secondary);
+    }
+
+    .for-you-suggestions-title {
+        color: var(--text-primary);
+    }
+
+    .for-you-suggestion-item {
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+    }
+
+    .for-you-suggestion-name {
+        color: var(--text-primary);
+    }
+
+    .for-you-suggestion-role {
+        color: var(--text-secondary);
+    }
+
+    .for-you-suggestion-follow-btn {
+        background: var(--text-primary);
+        color: var(--bg-primary);
+
+        &:hover {
+            background: #d1d5db;
+        }
+    }
+
+    .trending-featured-image {
+        background: var(--bg-secondary);
+    }
+
+    .under-development-page-title {
+        color: var(--text-primary);
+    }
+
+    .under-development-page-text {
+        color: var(--text-secondary);
+    }
+
+    .info_video_user {
+        color: var(--text-primary);
+    }
+
+    .info_header_video {
+        color: var(--text-primary);
+    }
+
+    .info_video {
+        color: var(--text-secondary);
+    }
+}
+
+
+body.dark-theme {
+    // ... существующие стили ...
+
+    // ===== ПОИСК В ЧАТЕ =====
+    .Chat-search-input {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+
+        &:focus {
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+            box-shadow: 0 0 0 2px rgba(162, 26, 216, 0.15);
+        }
+
+        &::placeholder {
+            color: var(--text-secondary);
+        }
+    }
+
+    // ===== МОДАЛЬНОЕ ОКНО (ОБЩЕЕ) =====
+    .modal-overlay {
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-header h2 {
+        color: var(--text-primary);
+    }
+
+    .modal-close-btn {
+        color: var(--text-secondary);
+
+        &:hover {
+            color: var(--text-primary);
+        }
+    }
+
+    .modal-textarea {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+
+        &:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        &::placeholder {
+            color: var(--text-secondary);
+        }
+    }
+
+    // Область загрузки фото
+    .photo-upload-area {
+        background: var(--bg-primary);
+        border: 2px dashed var(--border-color);
+
+        &:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+    }
+
+    .photo-upload-text {
+        color: var(--text-primary);
+    }
+
+    .photo-upload-hint {
+        color: var(--text-secondary);
+    }
+
+    // Кнопка публикации
+    .modal-submit-btn {
+        background: var(--accent);
+        color: #ffffff;
+
+        &:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+        }
+    }
+}
