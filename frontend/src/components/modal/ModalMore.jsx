@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
     const modalRef = useRef(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -15,6 +17,12 @@ export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [onClose]);
+
+    // 👇 Функция для перехода в настройки
+    const handleSettingsClick = () => {
+        onClose(); // Закрываем модалку
+        navigate('/settings'); // Переходим на страницу настроек
+    };
 
     return (
         <div className="modal-overlay settings-overlay">
@@ -31,13 +39,21 @@ export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
                 }}
             >
                 <div className="settings-modal-body">
-                    <div className="settings-item">
+                    {/* 👇 КЛИК ВЕДЁТ В НАСТРОЙКИ */}
+                    <div className="settings-item" onClick={handleSettingsClick}>
                         <span>Настройки и конфиденциал...</span>
                     </div>
+                    
                     <div className="settings-item" onClick={toggleTheme}>
                         <span>{isDarkTheme ? 'Светлая тема' : 'Тёмная тема'}</span>
                     </div>
-                    <div className="settings-item">
+                    
+                    <div className="settings-item" onClick={() => {
+                        if (window.confirm('Вы уверены, что хотите выйти из аккаунта?')) {
+                            console.log('Выход...');
+                            // Здесь можно добавить логику выхода
+                        }
+                    }}>
                         <span>Выйти из аккаунта</span>
                     </div>
                 </div>

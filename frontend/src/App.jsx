@@ -14,6 +14,7 @@ import { UnderDevelopmentPage } from './components/pages/UnderDevelopmentPage';
 import { ModalPost } from './components/modal/Modal';
 import { MusicPage } from './components/pages/MusicPage';
 import { ModalMore } from './components/modal/ModalMore';
+import { SettingsPage } from './components/pages/SettingsPage';
 
 function App() {
     const [activeItem, setActiveItem] = useState('Главная');
@@ -195,6 +196,7 @@ function App() {
                         <Route path="/chat" element={<ChatPage />} />
                         <Route path="/music" element={<MusicPage tracks={tracks} />} />
                         <Route path="*" element={<UnderDevelopmentPage pageName="Страница не найдена" />} />
+                        <Route path="/settings" element={<SettingsPage />} />
                     </Routes>
                 </div>
                 
