@@ -1,7 +1,21 @@
 services:
+  web-server:
+    image: nginx:stable-alpine3.23
+    container_name: astra-web-server
+    networks:
+      - astra_network
+    ports:
+      - 80:80
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+    - backend
+
   postgres:
-    image: postgres:15-alpine
-    container_name: astra_postgres
+    image: postgres:15-alpine3.23
+    container_name: astra-postgres
+    shm_size: 128mb
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -10,67 +24,36 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/BD:/docker-entrypoint-initdb.d
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - astra_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - astra_network
-    restart: unless-stopped
+      start_period: 10s
 
-  redis:
-    image: redis:7-alpine
-    container_name: astra_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - astra_network
-    restart: unless-stopped
-
-  app:
-    # Убрали жесткую привязку к image, если хотим форсировать сборку локально.
-    # Оставляем build контекст. Имя образа задаем явно.
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: astra-app:latest
-    container_name: astra_app
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      DB_HOST: postgres
-      DB_PORT: 5432
-      REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY}
-      DEBUG: ${DEBUG:-True}
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    ports:
-      - "80:80"
-      - "8000:8000"
+    container_name: astra-backend
+    hostname: backend
     volumes:
+      - ./backend:/app/backend
       - uploads_data:/app/uploads
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    networks:
+      - astra_network
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - astra_network
-    restart: unless-stopped
 
 volumes:
   postgres_data:
-  redis_data:
   uploads_data:
 
 networks:

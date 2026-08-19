@@ -151,10 +151,12 @@ function App() {
     const handlePrevTrack = () => setCurrentTrack(prev => (prev - 1 + tracks.length) % tracks.length);
 
     const location = useLocation();
+    const isSettingsPage = location.pathname === '/settings';
     const isChatPage = location.pathname === '/chat';
     const isMusicPage = location.pathname === '/music'; // Проверка для страницы музыки
     
-    
+    const shouldHideRightSidebar = isSettingsPage || isChatPage;
+
     return (
         <div className="app">
             <div className={`app-main-wrapper ${isChatPage ? 'app-main-wrapper-chat' : ''}`}>
@@ -201,7 +203,7 @@ function App() {
                 </div>
                 
                 {/* Правая панель - скрывается ТОЛЬКО на странице чата */}
-                <div className={`app-right-sidebar ${isChatPage ? 'app-right-sidebar-hidden' : ''}`}>
+                <div className={`app-right-sidebar ${shouldHideRightSidebar ? 'app-right-sidebar-hidden' : ''}`}>
                     <div className="app-search-wrapper">
                         <input type="search" className="app-search-input" placeholder="Поиск..." />
                     </div>
