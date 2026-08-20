@@ -1,6 +1,6 @@
 // src/App.jsx
 import React, { useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import "./static/master.scss";
 
 import { Menu } from './components/layout/Menu';
@@ -16,27 +16,71 @@ import { MusicPage } from './components/pages/MusicPage';
 import { ModalMore } from './components/modal/ModalMore';
 import { SettingsPage } from './components/pages/SettingsPage';
 
-function App() {
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoginPage from './components/pages/LoginPage';
+import RegisterPage from './components/pages/RegisterPage';
+
+// 👇 КОМПОНЕНТ ДЛЯ ЗАЩИТЫ МАРШРУТОВ (ВНЕ APP)
+const ProtectedRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+    
+    if (loading) {
+        return <div className="loading-screen">Загрузка...</div>;
+    }
+    if (!user) {
+        return <Navigate to="/login" />;
+    }
+    return children;
+};
+
+// 👇 КОМПОНЕНТ С ОСНОВНЫМ КОНТЕНТОМ (ИСПОЛЬЗУЕТ useAuth)
+const AppContent = () => {
+    const { user, updateTheme } = useAuth();
+    const location = useLocation();
+    
+    // Проверяем, страница авторизации или нет
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+    
+    // Если страница авторизации - показываем только её
+    if (isAuthPage) {
+        return (
+            <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+            </Routes>
+        );
+    }
+
+    // 👇 ОСТАЛЬНОЙ КОД (ВАША СОЦИАЛЬНАЯ СЕТЬ)
     const [activeItem, setActiveItem] = useState('Главная');
     const [activeTab, setActiveTab] = useState('Для тебя');
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTrack, setCurrentTrack] = useState(0);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-    // В App.jsx, в начале компонента:
     const [isDarkTheme, setIsDarkTheme] = useState(() => {
         return document.body.classList.contains('dark-theme');
     });
 
-    // Функция для переключения темы (если ещё нет)
-    const toggleTheme = () => {
+    const toggleTheme = async () => {
+        const newTheme = isDarkTheme ? 'light' : 'dark';
+        
+        // Оптимистичное обновление UI
         setIsDarkTheme(!isDarkTheme);
         document.body.classList.toggle('dark-theme');
+        
+        // Сохраняем на бекенде
+        try {
+            await updateTheme(newTheme);  // 👈 Используем функцию из AuthContext
+        } catch (error) {
+            // Откат при ошибке
+            setIsDarkTheme(isDarkTheme);
+            document.body.classList.toggle('dark-theme');
+            console.error('Ошибка сохранения темы:', error);
+        }
     };
 
-    // ===== ДАННЫЕ =====
+
     const menuItems = [
         { id: 'Главная', icon: '/menu/home.png', label: 'Главная', path: '/' },
         { id: 'Исследовать', icon: '/menu/search.png', label: 'Исследовать', path: '/explore' },
@@ -44,12 +88,7 @@ function App() {
         { id: 'Чат', icon: '/menu/chat.png', label: 'Чат', path: '/chat' },
         { id: 'Музыка', icon: '/menu/music.png', label: 'Музыка', path: '/music' },
         { id: 'Профиль', icon: '/menu/profile.png', label: 'Профиль', path: '/profile' },
-        // { id: 'Stella', icon: '/menu/AI.png', label: 'Stella', path: '/stella' },
-        // { id: 'Закладки', icon: '/menu/bookmarks.png', label: 'Закладки', path: '/bookmarks' },
-        // { id: 'Студия создателей', icon: '/menu/project.png', label: 'Студия Создателей', path: '/studio' },
-        // { id: 'Команда', icon: '/menu/command.png', label: 'Команда', path: '/team' },
-        // { id: 'Премиум', icon: '/menu/premium.png', label: 'Премиум', path: '/premium' },
-        { id: 'Более', icon: '/menu/more.png', label: 'Более', path: '/more' }
+        { id: 'Более', icon: '/menu/more.png', label: 'Более', path: '#' },
     ];
 
     const suggestedUsers = [
@@ -60,30 +99,9 @@ function App() {
     ];
 
     const tracks = [
-        {
-            id: 1,
-            title: 'Blinding Lights',
-            artist: 'The Weeknd',
-            album: 'After Hours',
-            duration: '3:20',
-            cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiHcy_0l0iJEr9v7kqah11L4Y7aNmaxkLzV9Lxk-i27g&s=10'
-        },
-        {
-            id: 2,
-            title: 'Starboy',
-            artist: 'The Weeknd',
-            album: 'Starboy',
-            duration: '4:16',
-            cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJUkqkUuLBuqBtKfsUwrdPKe3SW-5Worv4h1lF4cUa_g&s=10'
-        },
-        {
-            id: 3,
-            title: 'Save Your Tears',
-            artist: 'The Weeknd',
-            album: 'After Hours',
-            duration: '3:35',
-            cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPvZDT7T5F71HOZrj5hlJUPJf_Qsg-q4NGN9ioK5vxrg&s=10'
-        }
+        { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', duration: '3:20', cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiHcy_0l0iJEr9v7kqah11L4Y7aNmaxkLzV9Lxk-i27g&s=10' },
+        { id: 2, title: 'Starboy', artist: 'The Weeknd', album: 'Starboy', duration: '4:16', cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJUkqkUuLBuqBtKfsUwrdPKe3SW-5Worv4h1lF4cUa_g&s=10' },
+        { id: 3, title: 'Save Your Tears', artist: 'The Weeknd', album: 'After Hours', duration: '3:35', cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPvZDT7T5F71HOZrj5hlJUPJf_Qsg-q4NGN9ioK5vxrg&s=10' }
     ];
 
     const [posts, setPosts] = useState([
@@ -134,9 +152,9 @@ function App() {
             likes_count: 0,
             comments_count: 0,
             author: {
-                full_name: 'Алексей',
-                username: '@alexey',
-                avatar: '/default-avatar.png'
+                full_name: user?.full_name || 'Алексей',
+                username: user?.username || '@alexey',
+                avatar: user?.avatar || '/default-avatar.png'
             }
         };
         setPosts((prevPosts) => [newPost, ...prevPosts]);
@@ -150,11 +168,9 @@ function App() {
     const handleNextTrack = () => setCurrentTrack(prev => (prev + 1) % tracks.length);
     const handlePrevTrack = () => setCurrentTrack(prev => (prev - 1 + tracks.length) % tracks.length);
 
-    const location = useLocation();
     const isSettingsPage = location.pathname === '/settings';
     const isChatPage = location.pathname === '/chat';
-    const isMusicPage = location.pathname === '/music'; // Проверка для страницы музыки
-    
+    const isMusicPage = location.pathname === '/music';
     const shouldHideRightSidebar = isSettingsPage || isChatPage;
 
     return (
@@ -179,16 +195,22 @@ function App() {
                         />
 
                         <div className="app-user-profile">
-                            <div className="app-user-avatar">A</div>
+                            <div className="app-user-avatar">
+                                {user?.avatar ? (
+                                    <img src={user.avatar} alt={user.username} />
+                                ) : (
+                                    user?.username?.[0]?.toUpperCase() || 'A'
+                                )}
+                            </div>
                             <div className="app-user-info">
-                                <div className="app-user-name">Алексей</div>
-                                <div className="app-user-handle">@alexey</div>
+                                <div className="app-user-name">{user?.full_name || user?.username || 'Алексей'}</div>
+                                <div className="app-user-handle">@{user?.username || 'alexey'}</div>
                             </div>
                             <div className="app-user-more">•••</div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div className={`app-center-content ${isChatPage ? 'app-center-content-chat' : ''}`}>
                     <Routes>
                         <Route path="/" element={<HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />} />
@@ -197,12 +219,12 @@ function App() {
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path="/chat" element={<ChatPage />} />
                         <Route path="/music" element={<MusicPage tracks={tracks} />} />
-                        <Route path="*" element={<UnderDevelopmentPage pageName="Страница не найдена" />} />
                         <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/more" element={<Navigate to="/" replace />} />
+                        <Route path="*" element={<UnderDevelopmentPage pageName="Страница не найдена" />} />
                     </Routes>
                 </div>
-                
-                {/* Правая панель - скрывается ТОЛЬКО на странице чата */}
+
                 <div className={`app-right-sidebar ${shouldHideRightSidebar ? 'app-right-sidebar-hidden' : ''}`}>
                     <div className="app-search-wrapper">
                         <input type="search" className="app-search-input" placeholder="Поиск..." />
@@ -230,7 +252,6 @@ function App() {
                         </div>
                     </div>
 
-                    {/* Плеер скрывается ТОЛЬКО на странице музыки */}
                     {!isMusicPage && (
                         <MusicPlayer 
                             tracks={tracks}
@@ -269,6 +290,7 @@ function App() {
                     </div>
                 </div>
             </div>
+
             {isModalOpen && (
                 <ModalPost 
                     onClose={() => setIsModalOpen(false)} 
@@ -284,6 +306,15 @@ function App() {
                 />
             )}
         </div>
+    );
+};
+
+// 👇 ГЛАВНЫЙ КОМПОНЕНТ APP (ОБЕРТЫВАЕТ В AuthProvider)
+function App() {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
     );
 }
 

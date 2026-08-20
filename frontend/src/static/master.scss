@@ -1521,7 +1521,7 @@ body {
 
 .Profile_img {
   border-radius: 50%;
-  border: 4px solid #ffffff;
+  border: 4px solid #292727;
   width: 100px;
   height: 100px;
   object-fit: cover;
@@ -2657,6 +2657,7 @@ body {
 
     &:hover {
       background-color: rgba(15, 20, 25, 0.08);
+      cursor: pointer;
     }
 
     span {
@@ -3430,6 +3431,7 @@ body.dark-theme {
 
         &:hover {
             background-color: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
         }
 
         span {
@@ -3894,4 +3896,76 @@ body.dark-theme {
     .settings-menu-item-arrow-full {
         color: var(--text-tertiary, #8b98a5);
     }
+}
+
+
+// ===== ЛОГОТИП - ФИНАЛЬНЫЙ ФИКС =====
+.app-logo-wrapper .app-logo,
+.app-logo {
+    // Убираем все возможные фильтры и трансформации
+    filter: none !important;
+    -webkit-filter: none !important;
+    -moz-filter: none !important;
+    -o-filter: none !important;
+    -ms-filter: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    mix-blend-mode: normal !important;
+}
+
+// Тёмная тема - используем тёмную версию логотипа
+body.dark-theme .app-logo:not(.app-logo-dark) {
+    display: none !important;
+}
+
+body.dark-theme .app-logo-dark {
+    display: block !important;
+    filter: none !important;
+}
+
+// Светлая тема - показываем обычный логотип, скрываем тёмный
+body:not(.dark-theme) .app-logo-dark {
+    display: none !important;
+}
+
+body:not(.dark-theme) .app-logo {
+    display: block !important;
+    filter: none !important;
+}
+
+// ============================================================
+// ===== ЛОГОТИП - 100% ФИКС =====
+// ============================================================
+
+// 1. Убираем фильтр у логотипа полностью
+.app-logo-wrapper .app-logo,
+.app-logo {
+    filter: none !important;
+    -webkit-filter: none !important;
+    opacity: 1 !important;
+}
+
+// 2. Для тёмной темы - инвертируем только логотип
+body.dark-theme .app-logo-wrapper .app-logo,
+body.dark-theme .app-logo {
+    filter: brightness(0) invert(1) !important;
+    -webkit-filter: brightness(0) invert(1) !important;
+}
+
+// 3. Для светлой темы - убираем фильтр
+body:not(.dark-theme) .app-logo-wrapper .app-logo,
+body:not(.dark-theme) .app-logo {
+    filter: none !important;
+    -webkit-filter: none !important;
+}
+
+// 4. Защита от наследования фильтра от иконок
+.app-left-sidebar .app-logo-wrapper {
+    filter: none !important;
+}
+
+// 5. Если используется app-logo-dark
+.app-logo-dark {
+    filter: brightness(0) invert(1) !important;
+    -webkit-filter: brightness(0) invert(1) !important;
 }

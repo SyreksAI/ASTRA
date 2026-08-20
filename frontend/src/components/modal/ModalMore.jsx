@@ -18,17 +18,20 @@ export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
         };
     }, [onClose]);
 
-    // 👇 Функция для перехода в настройки
     const handleSettingsClick = () => {
-        onClose(); // Закрываем модалку
-        navigate('/settings'); // Переходим на страницу настроек
+        onClose();
+        navigate('/settings');
     };
 
     return (
-        <div className="modal-overlay settings-overlay">
+        <div 
+            className="modal-overlay settings-overlay"
+            onClick={onClose}
+        >
             <div 
                 ref={modalRef}
-                className="modal-content settings-modal" 
+                className="settings-modal"
+                onClick={(e) => e.stopPropagation()}
                 style={{
                     position: 'fixed',
                     bottom: '380px',
@@ -39,22 +42,30 @@ export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
                 }}
             >
                 <div className="settings-modal-body">
-                    {/* 👇 КЛИК ВЕДЁТ В НАСТРОЙКИ */}
-                    <div className="settings-item" onClick={handleSettingsClick}>
+                    <div 
+                        className="settings-item"
+                        onClick={handleSettingsClick}
+                    >
                         <span>Настройки и конфиденциал...</span>
                     </div>
                     
-                    <div className="settings-item" onClick={toggleTheme}>
+                    <div 
+                        className="settings-item"
+                        onClick={toggleTheme}
+                    >
                         <span>{isDarkTheme ? 'Светлая тема' : 'Тёмная тема'}</span>
                     </div>
                     
-                    <div className="settings-item" onClick={() => {
-                        if (window.confirm('Вы уверены, что хотите выйти из аккаунта?')) {
-                            console.log('Выход...');
-                            // Здесь можно добавить логику выхода
-                        }
-                    }}>
-                        <span>Выйти из аккаунта</span>
+                    <div 
+                        className="settings-item"
+                        style={{ borderBottom: 'none' }}
+                        onClick={() => {
+                            if (window.confirm('Вы уверены, что хотите выйти из аккаунта?')) {
+                                console.log('Выход...');
+                            }
+                        }}
+                    >
+                        <span style={{ color: '#dc2626' }}>Выйти из аккаунта</span>
                     </div>
                 </div>
             </div>
