@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
@@ -20,5 +20,12 @@ def get_db():
     finally:
         db.close()
 
+
 def init_db():
+    from backend import models  # noqa: F401
     Base.metadata.create_all(bind=engine)
+    with engine.begin() as connection:
+        connection.execute(text(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS cover_image VARCHAR(255)"
+        ))
+

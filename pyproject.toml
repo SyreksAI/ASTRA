@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "astra-backend"
+name = "dubpar-backend"
 version = "0.1.0"
-description = "Social Network API Backend"
-authors = ["Your Name <you@example.com>"]
+description = "DubPar - образовательный проект по РПО"
+authors = ["DubPar Team <team@dubpar.ru>"]
 readme = "README.md"
-package-mode = false  # Важно, если это не библиотека, а приложение
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
@@ -12,12 +12,13 @@ fastapi = "^0.115.0"
 uvicorn = {extras = ["standard"], version = "^0.34.0"}
 sqlalchemy = "^2.0.36"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
-passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+pwdlib = {extras = ["argon2", "bcrypt"], version = "^0.2.1"}
 python-multipart = "^0.0.20"
 psycopg2-binary = "^2.9.10"
 python-dotenv = "^1.0.0"
 pydantic-settings = "^2.7.0"
 email-validator = "^2.0.0"
+websockets = "^17.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"

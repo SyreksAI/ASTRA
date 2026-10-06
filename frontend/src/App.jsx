@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import "./static/master.scss";
 
@@ -20,7 +20,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
 
-// 👇 КОМПОНЕНТ ДЛЯ ЗАЩИТЫ МАРШРУТОВ (ВНЕ APP)
+// ===== КОМПОНЕНТ ДЛЯ ЗАЩИТЫ МАРШРУТОВ =====
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
     
@@ -28,59 +28,127 @@ const ProtectedRoute = ({ children }) => {
         return <div className="loading-screen">Загрузка...</div>;
     }
     if (!user) {
-        return <Navigate to="/login" />;
+        return <Navigate to="/login" replace />;
     }
     return children;
 };
 
-// 👇 КОМПОНЕНТ С ОСНОВНЫМ КОНТЕНТОМ (ИСПОЛЬЗУЕТ useAuth)
+// ===== КОМПОНЕНТ ДЛЯ СТРАНИЦ АВТОРИЗАЦИИ =====
+const AuthRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+    
+    if (loading) {
+        return <div className="loading-screen">Загрузка...</div>;
+    }
+    
+    if (user) {
+        // 👇 ВОССТАНАВЛИВАЕМ ТЕМУ ИЗ localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+        } else {
+            document.body.classList.remove('dark-theme');
+        }
+        
+        // ОБНОВЛЯЕМ СОСТОЯНИЕ В AppContent
+        window.dispatchEvent(new Event('themeChanged'));
+        
+        return <Navigate to="/" replace />;
+    }
+    return children;
+};
+
+
+// ===== ОСНОВНОЙ КОМПОНЕНТ =====
 const AppContent = () => {
     const { user, updateTheme } = useAuth();
     const location = useLocation();
     
-    // Проверяем, страница авторизации или нет
-    const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
-    
-    // Если страница авторизации - показываем только её
-    if (isAuthPage) {
-        return (
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-            </Routes>
-        );
-    }
-
-    // 👇 ОСТАЛЬНОЙ КОД (ВАША СОЦИАЛЬНАЯ СЕТЬ)
+    // ===== СОСТОЯНИЯ =====
     const [activeItem, setActiveItem] = useState('Главная');
     const [activeTab, setActiveTab] = useState('Для тебя');
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTrack, setCurrentTrack] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    
+    // ===== ТЕМА =====
     const [isDarkTheme, setIsDarkTheme] = useState(() => {
-        return document.body.classList.contains('dark-theme');
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme === 'dark';
     });
 
+    
+
+    // ===== ЭФФЕКТ 1: Загрузка темы при старте =====
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            setIsDarkTheme(true);
+        } else {
+            document.body.classList.remove('dark-theme');
+            setIsDarkTheme(false);
+        }
+    }, []);
+
+    // ===== ЭФФЕКТ 2: Отслеживание изменения класса на body =====
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            const isDark = document.body.classList.contains('dark-theme');
+            setIsDarkTheme(isDark);
+        });
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
+    }, []);
+
+    // ===== ЭФФЕКТ 3: Обработчик события восстановления темы =====
+    useEffect(() => {
+        const handleThemeChange = () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                setIsDarkTheme(true);
+            } else {
+                document.body.classList.remove('dark-theme');
+                setIsDarkTheme(false);
+            }
+        };
+        
+        window.addEventListener('themeChanged', handleThemeChange);
+        return () => window.removeEventListener('themeChanged', handleThemeChange);
+    }, []);
+
+    // ===== ЭФФЕКТ 4: Синхронизация темы при изменении user =====
+    useEffect(() => {
+        if (user) {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                setIsDarkTheme(true);
+            } else {
+                document.body.classList.remove('dark-theme');
+                setIsDarkTheme(false);
+            }
+            console.log('🔄 Тема синхронизирована с user:', savedTheme);
+        }
+    }, [user]);
+
+    // ===== ПЕРЕКЛЮЧЕНИЕ ТЕМЫ =====
     const toggleTheme = async () => {
         const newTheme = isDarkTheme ? 'light' : 'dark';
-        
-        // Оптимистичное обновление UI
         setIsDarkTheme(!isDarkTheme);
         document.body.classList.toggle('dark-theme');
-        
-        // Сохраняем на бекенде
         try {
-            await updateTheme(newTheme);  // 👈 Используем функцию из AuthContext
+            await updateTheme(newTheme);
         } catch (error) {
-            // Откат при ошибке
             setIsDarkTheme(isDarkTheme);
             document.body.classList.toggle('dark-theme');
             console.error('Ошибка сохранения темы:', error);
         }
     };
 
-
+    // ===== ДАННЫЕ =====
     const menuItems = [
         { id: 'Главная', icon: '/menu/home.png', label: 'Главная', path: '/' },
         { id: 'Исследовать', icon: '/menu/search.png', label: 'Исследовать', path: '/explore' },
@@ -104,66 +172,61 @@ const AppContent = () => {
         { id: 3, title: 'Save Your Tears', artist: 'The Weeknd', album: 'After Hours', duration: '3:35', cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPvZDT7T5F71HOZrj5hlJUPJf_Qsg-q4NGN9ioK5vxrg&s=10' }
     ];
 
-    const [posts, setPosts] = useState([
-        {
-            id: 1,
-            name: 'Павел Дуров',
-            handle: '@durov',
-            avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBXjt3QBuQnsx3pKEV-UpT8XXychSKg9gij_WRs4OY1A&s=10',
-            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSq8LU4scR56nOOivsXLOFFWlbx7UNEvvB8PF4qJqRVYA&s=10',
-            content: 'Telegram достиг 900 миллионов активных пользователей! 🚀',
-            likes: 1234,
-            comments: 89,
-            retweets: 234
-        },
-        {
-            id: 2,
-            name: 'Дмитрий Нагиев',
-            handle: '@nagiev_official',
-            avatar: 'https://avatars.mds.yandex.net/i?id=a0629e3b84c2ddbeeb6ee3a0d606f558563ec106-5171197-images-thumbs&n=13',
-            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            content: 'Любите жизнь и будьте счастливы! 🎭✨',
-            image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8RR9PGSamrNwfPqAcEho4_T4K-O8F3h7gJdpRXJNIsQ&s=10',
-            likes: 5678,
-            comments: 345,
-            retweets: 789
-        },
-        {
-            id: 3,
-            name: 'Сергей Жуков',
-            handle: '@zhukov_official',
-            avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRd-8LIrbnf-SCygSHIM6pWBiLbpeQk05V0mDx1GuoMyw&s=10',
-            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            content: 'Новый клип выходит завтра! 🎵❤️',
-            image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl48WhTRo7M2KPyCbWMTh5P-7hPCM0D6m5cR4NjqBG_A&s=10',
-            likes: 7890,
-            comments: 456,
-            retweets: 890
+    const [posts, setPosts] = useState([]);
+
+    useEffect(() => {
+        if (!user) {
+            setPosts([]);
+            return undefined;
         }
-    ]);
 
-    const handleAddPost = (newPostData) => {
-        const newPost = {
-            id: Date.now(),
-            created_at: new Date().toISOString(),
-            content: newPostData.text,
-            image: newPostData.image,
-            likes_count: 0,
-            comments_count: 0,
-            author: {
-                full_name: user?.full_name || 'Алексей',
-                username: user?.username || '@alexey',
-                avatar: user?.avatar || '/default-avatar.png'
-            }
-        };
+        let cancelled = false;
+        fetch('/api/posts/', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        })
+            .then(async (response) => {
+                if (!response.ok) throw new Error('Не удалось загрузить публикации');
+                return response.json();
+            })
+            .then((data) => {
+                if (!cancelled) setPosts(data);
+            })
+            .catch((error) => console.error('Ошибка загрузки публикаций:', error));
+
+        return () => { cancelled = true; };
+    }, [user?.id]);
+
+    // ===== ОБРАБОТЧИКИ =====
+    const handleAddPost = async (newPostData) => {
+        const formData = new FormData();
+        formData.append('content', newPostData.text || '');
+        if (newPostData.imageFile) formData.append('image', newPostData.imageFile);
+        const response = await fetch('/api/posts/', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            body: formData
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+            const detail = Array.isArray(result?.detail)
+                ? result.detail.map((item) => item.msg).join('. ')
+                : result?.detail;
+            throw new Error(detail || 'Не удалось опубликовать запись');
+        }
+        const newPost = result;
         setPosts((prevPosts) => [newPost, ...prevPosts]);
+        return newPost;
     };
 
-    const handleMenuItemClick = (item) => {
-        setActiveItem(item.id);
+    const handleCommentCountChange = (postId) => {
+        setPosts((currentPosts) => currentPosts.map((post) => (
+            post.id === postId
+                ? { ...post, comments_count: (post.comments_count || 0) + 1 }
+                : post
+        )));
     };
 
+    const handleMenuItemClick = (item) => setActiveItem(item.id);
     const handlePlayToggle = () => setIsPlaying(!isPlaying);
     const handleNextTrack = () => setCurrentTrack(prev => (prev + 1) % tracks.length);
     const handlePrevTrack = () => setCurrentTrack(prev => (prev - 1 + tracks.length) % tracks.length);
@@ -171,11 +234,13 @@ const AppContent = () => {
     const isSettingsPage = location.pathname === '/settings';
     const isChatPage = location.pathname === '/chat';
     const isMusicPage = location.pathname === '/music';
-    const shouldHideRightSidebar = isSettingsPage || isChatPage;
+    const shouldHideRightSidebar = isSettingsPage || isChatPage || isMusicPage;
 
+    // ===== RENDER =====
     return (
         <div className="app">
-            <div className={`app-main-wrapper ${isChatPage ? 'app-main-wrapper-chat' : ''}`}>
+            <div className={`app-main-wrapper ${isChatPage ? 'app-main-wrapper-chat' : ''} ${isMusicPage ? 'app-main-wrapper-music' : ''}`}>
+                {/* Левая панель */}
                 <div className="app-left-sidebar">
                     <div className="app-left-sidebar-block">
                         <div className="app-logo-wrapper">
@@ -211,20 +276,75 @@ const AppContent = () => {
                     </div>
                 </div>
 
-                <div className={`app-center-content ${isChatPage ? 'app-center-content-chat' : ''}`}>
+                {/* Центральный контент */}
+                <div className={`app-center-content ${isChatPage ? 'app-center-content-chat' : ''} ${isMusicPage ? 'app-center-content-music' : ''}`}>
                     <Routes>
-                        <Route path="/" element={<HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />} />
-                        <Route path="/explore" element={<ExplorePage suggestedUsers={suggestedUsers} />} />
-                        <Route path="/profile" element={<ProfilePage suggestedUsers={suggestedUsers} />} />
-                        <Route path="/notifications" element={<NotificationsPage />} />
-                        <Route path="/chat" element={<ChatPage />} />
-                        <Route path="/music" element={<MusicPage tracks={tracks} />} />
-                        <Route path="/settings" element={<SettingsPage />} />
+                        {/* Защищённые маршруты */}
+                        <Route path="/" element={
+                            <ProtectedRoute>
+                                <HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} onCommentCountChange={handleCommentCountChange} />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/explore" element={
+                            <ProtectedRoute>
+                                <ExplorePage suggestedUsers={suggestedUsers} />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/profile" element={
+                            <ProtectedRoute>
+                                <ProfilePage posts={posts} onCommentCountChange={handleCommentCountChange} />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/notifications" element={
+                            <ProtectedRoute>
+                                <NotificationsPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/chat" element={
+                            <ProtectedRoute>
+                                <ChatPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/music" element={
+                            <ProtectedRoute>
+                                <MusicPage
+                                    tracks={tracks}
+                                    currentTrack={currentTrack}
+                                    isPlaying={isPlaying}
+                                    onPlayToggle={handlePlayToggle}
+                                    onNext={handleNextTrack}
+                                    onPrev={handlePrevTrack}
+                                    onTrackSelect={(index) => {
+                                        setCurrentTrack(index);
+                                        setIsPlaying(true);
+                                    }}
+                                />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/settings" element={
+                            <ProtectedRoute>
+                                <SettingsPage />
+                            </ProtectedRoute>
+                        } />
                         <Route path="/more" element={<Navigate to="/" replace />} />
+                        
+                        {/* Маршруты авторизации (только для неавторизованных) */}
+                        <Route path="/login" element={
+                            <AuthRoute>
+                                <LoginPage />
+                            </AuthRoute>
+                        } />
+                        <Route path="/register" element={
+                            <AuthRoute>
+                                <RegisterPage />
+                            </AuthRoute>
+                        } />
+                        
                         <Route path="*" element={<UnderDevelopmentPage pageName="Страница не найдена" />} />
                     </Routes>
                 </div>
 
+                {/* Правая панель */}
                 <div className={`app-right-sidebar ${shouldHideRightSidebar ? 'app-right-sidebar-hidden' : ''}`}>
                     <div className="app-search-wrapper">
                         <input type="search" className="app-search-input" placeholder="Поиск..." />
@@ -291,6 +411,7 @@ const AppContent = () => {
                 </div>
             </div>
 
+            {/* Модальные окна */}
             {isModalOpen && (
                 <ModalPost 
                     onClose={() => setIsModalOpen(false)} 
@@ -309,7 +430,7 @@ const AppContent = () => {
     );
 };
 
-// 👇 ГЛАВНЫЙ КОМПОНЕНТ APP (ОБЕРТЫВАЕТ В AuthProvider)
+// ===== ГЛАВНЫЙ КОМПОНЕНТ =====
 function App() {
     return (
         <AuthProvider>

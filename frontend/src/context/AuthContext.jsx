@@ -5,38 +5,73 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
+const readApiError = async (response, fallback) => {
+    const body = await response.json().catch(() => null);
+    if (Array.isArray(body?.detail)) {
+        return body.detail.map((item) => item.msg).join('. ');
+    }
+    return body?.detail || fallback;
+};
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [token, setToken] = useState(localStorage.getItem('token'));
 
-    // 👇 Функция применения темы
+    // 👇 Применяет тему И СОХРАНЯЕТ в localStorage
     const applyTheme = (theme) => {
         if (theme === 'dark') {
             document.body.classList.add('dark-theme');
             localStorage.setItem('theme', 'dark');
-            console.log('🌙 Тёмная тема включена');
+            console.log('🌙 Тёмная тема включена и сохранена');
         } else {
             document.body.classList.remove('dark-theme');
             localStorage.setItem('theme', 'light');
-            console.log('☀️ Светлая тема включена');
+            console.log('☀️ Светлая тема включена и сохранена');
         }
     };
 
-    // 👇 ЗАГРУЗКА ТЕМЫ ПРИ СТАРТЕ (из localStorage)
+    // 👇 Применяет тему ТОЛЬКО ВИЗУАЛЬНО (НЕ сохраняет в localStorage)
+    const applyThemeVisual = (theme) => {
+        if (theme === 'dark') {
+            document.body.classList.add('dark-theme');
+        } else {
+            document.body.classList.remove('dark-theme');
+        }
+        console.log('🎨 Тема применена визуально:', theme);
+    };
+
+    const restoreTheme = () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+        } else {
+            document.body.classList.remove('dark-theme');
+        }
+        console.log('🔄 Тема восстановлена из localStorage:', savedTheme);
+    };
+
+    const logout = () => {
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
+        // 👇 ТОЛЬКО ВИЗУАЛЬНО — светлая для страницы логина
+        applyThemeVisual('light');
+        console.log('🚪 Выход выполнен');
+    };
+
+    // 👇 СТРАНИЦЫ АВТОРИЗАЦИИ — всегда светлые (визуально)
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') || 'light';
-        // 👇 Проверяем, находимся ли мы на странице входа/регистрации
         const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register';
         if (isAuthPage) {
-            // 👇 Если на странице авторизации - ВСЕГДА СВЕТЛАЯ ТЕМА
-            applyTheme('light');
+            applyThemeVisual('light');
+            console.log('📄 Страница авторизации — светлая тема');
         } else {
             applyTheme(savedTheme);
         }
     }, []);
 
-    // 👇 Загрузка пользователя
     useEffect(() => {
         if (token) {
             fetch('/api/auth/me', {
@@ -48,7 +83,7 @@ export const AuthProvider = ({ children }) => {
                 })
                 .then(data => {
                     setUser(data);
-                    // 👇 НЕ МЕНЯЕМ ТЕМУ! Оставляем из localStorage
+                    restoreTheme();
                     setLoading(false);
                 })
                 .catch(() => {
@@ -69,8 +104,7 @@ export const AuthProvider = ({ children }) => {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Ошибка входа');
+            throw new Error(await readApiError(response, 'Ошибка входа'));
         }
 
         const data = await response.json();
@@ -78,9 +112,15 @@ export const AuthProvider = ({ children }) => {
         setToken(data.access_token);
         setUser(data.user);
         
-        // 👇 ПРИ ВХОДЕ ВСЕГДА СВЕТЛАЯ ТЕМА
-        applyTheme('light');
-        console.log('🔑 Вход выполнен. Тема: светлая');
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            applyTheme(savedTheme);
+            console.log('🔑 Вход выполнен. Тема из localStorage:', savedTheme);
+        } else {
+            const serverTheme = data.user?.preferences?.theme || 'light';
+            applyTheme(serverTheme);
+            console.log('🔑 Вход выполнен. Тема из сервера (localStorage пуст):', serverTheme);
+        }
         
         return data;
     };
@@ -93,8 +133,7 @@ export const AuthProvider = ({ children }) => {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Ошибка регистрации');
+            throw new Error(await readApiError(response, 'Ошибка регистрации'));
         }
 
         const data = await response.json();
@@ -102,16 +141,13 @@ export const AuthProvider = ({ children }) => {
         setToken(data.access_token);
         setUser(data.user);
         
-        // 👇 ПРИ РЕГИСТРАЦИИ ВСЕГДА СВЕТЛАЯ ТЕМА
         applyTheme('light');
         console.log('📝 Регистрация выполнена. Тема: светлая');
         
         return data;
     };
 
-    // 👇 Функция для обновления темы (через "Более") - МЕНЯЕТ ТЕМУ
     const updateTheme = async (theme) => {
-        // Сначала меняем UI и сохраняем в localStorage
         applyTheme(theme);
         console.log('🔄 Тема изменена на:', theme);
 
@@ -138,26 +174,57 @@ export const AuthProvider = ({ children }) => {
 
             setUser(prev => ({
                 ...prev,
-                preferences: { ...prev?.preferences, theme: data.theme }
+                preferences: { ...prev?.preferences, theme: theme }
             }));
+
+            applyTheme(theme);
 
             return data;
         } catch (error) {
             console.error('❌ Ошибка сохранения темы:', error);
-            // Откатываем при ошибке
             const oldTheme = theme === 'dark' ? 'light' : 'dark';
             applyTheme(oldTheme);
             throw error;
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
-        // 👇 ПРИ ВЫХОДЕ ВСЕГДА СВЕТЛАЯ ТЕМА
-        applyTheme('light');
-        console.log('🚪 Выход выполнен. Тема: светлая');
+    const updateProfile = async (profile) => {
+        const currentToken = localStorage.getItem('token');
+        const response = await fetch('/api/auth/me', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify(profile)
+        });
+
+        if (!response.ok) {
+            throw new Error(await readApiError(response, 'Не удалось сохранить профиль'));
+        }
+
+        const updatedUser = await response.json();
+        setUser(updatedUser);
+        return updatedUser;
+    };
+
+    const uploadProfileImage = async (file, imageKind) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await fetch(`/api/auth/me/${imageKind}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(await readApiError(response, 'Не удалось обновить фото'));
+        }
+
+        const result = await response.json();
+        const fieldName = imageKind === 'cover' ? 'cover_image' : 'avatar';
+        setUser((currentUser) => ({ ...currentUser, [fieldName]: result[fieldName] }));
+        return result[fieldName];
     };
 
     const value = {
@@ -167,6 +234,8 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         updateTheme,
+        updateProfile,
+        uploadProfileImage,
         isAuthenticated: !!user
     };
 

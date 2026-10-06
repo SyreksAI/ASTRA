@@ -1,23 +1,24 @@
 FROM python:3.11-alpine
 
-# Установка системных зависимостей
+# Системные зависимости для psycopg2 и pwdlib (argon2/bcrypt)
 RUN apk add --no-cache gcc musl-dev postgresql-dev libpq curl build-base
 
 WORKDIR /app
 
-# Установка Poetry
-RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 - && \
-    ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
+ENV POETRY_VERSION=1.8.5 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
 
-ENV POETRY_VIRTUALENVS_CREATE=false
+RUN pip install --no-cache-dir "poetry==${POETRY_VERSION}"
 
-# Копируем файлы зависимостей
-COPY pyproject.toml poetry.lock* ./
+# Сначала только манифесты — кеш слоя при изменении кода backend
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --only main --no-root \
+    && rm -rf "${POETRY_CACHE_DIR}"
 
-# Установка зависимостей
-RUN poetry install --no-interaction --no-ansi --without dev
-
-# Копируем исходный код
 COPY ./backend ./backend
+
+EXPOSE 8000
 
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

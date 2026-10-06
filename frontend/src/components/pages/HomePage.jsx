@@ -2,7 +2,7 @@ import React from 'react';
 import { PostCard } from "../post/PostCard";
 // import { ModalPost } from './components/modal/Modal';
 
-export function HomePage({ posts, activeTab, setActiveTab }) {
+export function HomePage({ posts, activeTab, setActiveTab, onCommentCountChange }) {
     return (
         <div className="home-page">
             <div className="home-page-header">
@@ -15,7 +15,7 @@ export function HomePage({ posts, activeTab, setActiveTab }) {
                 ))}
             </div>
             <div className="home-page-feed">
-                {posts.map(post => <PostCard key={post.id} post={post} />)}
+                {posts.map(post => <PostCard key={post.id} post={post} onCommentCountChange={onCommentCountChange} />)}
             </div>
         </div>
     );

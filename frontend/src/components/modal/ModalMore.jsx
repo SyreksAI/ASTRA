@@ -1,9 +1,12 @@
+// src/components/modal/ModalMore.jsx
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';  
 
 export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
     const modalRef = useRef(null);
     const navigate = useNavigate();
+    const { logout } = useAuth();  
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -21,6 +24,15 @@ export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
     const handleSettingsClick = () => {
         onClose();
         navigate('/settings');
+    };
+
+    // 👇 ФУНКЦИЯ ВЫХОДА
+    const handleLogout = () => {
+        if (window.confirm('Вы уверены, что хотите выйти из аккаунта?')) {
+            logout();  // 👈 ВЫЗЫВАЕМ logout из AuthContext
+            onClose();
+            navigate('/login');
+        }
     };
 
     return (
@@ -46,7 +58,7 @@ export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
                         className="settings-item"
                         onClick={handleSettingsClick}
                     >
-                        <span>Настройки и конфиденциал...</span>
+                        <span>Настройки и конфиденциальность</span>
                     </div>
                     
                     <div 
@@ -59,11 +71,7 @@ export function ModalMore({ onClose, toggleTheme, isDarkTheme }) {
                     <div 
                         className="settings-item"
                         style={{ borderBottom: 'none' }}
-                        onClick={() => {
-                            if (window.confirm('Вы уверены, что хотите выйти из аккаунта?')) {
-                                console.log('Выход...');
-                            }
-                        }}
+                        onClick={handleLogout}  // 👈 ИСПОЛЬЗУЕМ НОВУЮ ФУНКЦИЮ
                     >
                         <span style={{ color: '#dc2626' }}>Выйти из аккаунта</span>
                     </div>

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { timeAgo } from '../utils/dateUtils'; // Импортируем функцию
+import { CommentsThread } from './CommentsThread';
 
-export function PostCard({ post }) {
+export function PostCard({ post, onCommentCountChange }) {
     const [liked, setLiked] = useState(false);
     const [likesCount, setLikesCount] = useState(post.likes_count || 0);
+    const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
+    const [commentsOpen, setCommentsOpen] = useState(false);
 
     const handleLike = (e) => {
         e.stopPropagation();
@@ -35,11 +38,14 @@ export function PostCard({ post }) {
             <div className="post-item-content">{post.content}</div>
             
             <div className="post-item-actions">
-                <button className="post-item-action-btn">
+                <button className="post-item-action-btn" onClick={(event) => {
+                    event.stopPropagation();
+                    setCommentsOpen((isOpen) => !isOpen);
+                }} aria-label={commentsOpen ? 'Свернуть комментарии' : 'Показать комментарии'} aria-expanded={commentsOpen}>
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/>
                     </svg>
-                    {post.comments_count || 0}
+                    {commentsCount}
                 </button>
                 
                 <button className={`post-item-action-btn ${liked ? 'post-item-liked' : ''}`} onClick={handleLike}>
@@ -58,6 +64,16 @@ export function PostCard({ post }) {
                     </svg>
                 </button>
             </div>
+            {commentsOpen && (
+                <CommentsThread
+                    post={post}
+                    onClose={() => setCommentsOpen(false)}
+                    onCommentAdded={() => {
+                        setCommentsCount((count) => count + 1);
+                        onCommentCountChange?.(post.id);
+                    }}
+                />
+            )}
         </div>
     );
 }
