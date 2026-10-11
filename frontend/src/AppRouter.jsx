@@ -8,17 +8,17 @@ import { ProfilePage } from './components/pages/ProfilePage';
 import { ChatPage } from './components/pages/ChatPage';
 import { NotificationsPage } from './components/pages/NotificationsPage';
 import { UnderDevelopmentPage } from './components/pages/UnderDevelopmentPage';
+import { UserProfilePage } from './components/pages/UserProfilePage';
 
 function AppRouter({ posts, suggestedUsers, activeTab, setActiveTab }) {
     return (
         <Routes>
-            <Route path="/" element={
-                <HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />
-            } />
+            <Route path="/" element={<HomePage posts={posts} activeTab={activeTab} setActiveTab={setActiveTab} />} />
             <Route path="/explore" element={<ExplorePage suggestedUsers={suggestedUsers} />} />
             <Route path="/profile" element={<ProfilePage suggestedUsers={suggestedUsers} />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/user/:username" element={<UserProfilePage />} />
             <Route path="*" element={<UnderDevelopmentPage pageName="Страница не найдена" />} />
         </Routes>
     );

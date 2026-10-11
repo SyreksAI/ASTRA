@@ -59,7 +59,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         return password_hash.verify(plain_password, hashed_password)
     except UnknownHashError:
-        # Existing accounts may still have legacy MD5-crypt or DES-crypt hashes.
         if crypt is None:
             return False
         try:
@@ -97,6 +96,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.id == int(user_id)).first()
     if user is None:
         raise credentials_exception
+
+    # 👇 Обновляем last_seen_at, но не чаще раза в 30 секунд
+    now = datetime.utcnow()
+    if user.last_seen_at is None or (now - user.last_seen_at).total_seconds() > 30:
+        user.last_seen_at = now
+        db.commit()
+
     return user
 
 
@@ -153,7 +159,10 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
 
     if not user.password_hash.startswith("$argon2"):
         user.password_hash = get_password_hash(request.password)
-        db.commit()
+
+    # 👇 Обновляем last_seen_at при логине
+    user.last_seen_at = datetime.utcnow()
+    db.commit()
 
     token = create_access_token(
         data={"sub": str(user.id)},

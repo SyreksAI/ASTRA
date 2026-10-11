@@ -25,6 +25,9 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
     const coverInputRef = useRef(null);
     const [form, setForm] = useState({ username: '', full_name: '', bio: '' });
 
+    // 👇 Счётчики подписок / подписчиков (реальные из /api/users/{username})
+    const [stats, setStats] = useState({ following_count: 0, followers_count: 0, posts_count: 0 });
+
     useEffect(() => {
         setAvatarFailed(false);
     }, [user?.avatar]);
@@ -52,6 +55,26 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
         setCoverPreview(user?.cover_image || '');
         setError('');
     }, [isEditing]);
+
+    // 👇 Загружаем счётчики из публичного эндпоинта (там есть followers_count и following_count)
+    useEffect(() => {
+        if (!user?.username) return;
+        const token = localStorage.getItem('token');
+        fetch(`/api/users/${user.username}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+                if (data) {
+                    setStats({
+                        following_count: data.following_count ?? 0,
+                        followers_count: data.followers_count ?? 0,
+                        posts_count: data.posts_count ?? 0,
+                    });
+                }
+            })
+            .catch(() => {});
+    }, [user?.username]);
 
     if (!user) {
         return <div className="profile-page-loading">Загрузка профиля…</div>;
@@ -138,6 +161,13 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
                 <p className="UserName_profile">@{user.username}</p>
                 {user.bio ? <p className="info_user">{user.bio}</p> : <p className="profile-empty-bio">Добавьте описание о себе</p>}
                 {joinedAt && <p className="profile-joined-date">На Astra с {joinedAt}</p>}
+
+                {/* 👇 Статистика — точно как на чужом профиле */}
+                <div className="profile-stats" style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                    <span><b>{stats.following_count}</b> подписок</span>
+                    <span><b>{stats.followers_count}</b> подписчиков</span>
+                    <span><b>{stats.posts_count}</b> постов</span>
+                </div>
 
                 <div className="profile-page-content home-page-feed">
                     <h2 className="profile-posts-title">Публикации</h2>

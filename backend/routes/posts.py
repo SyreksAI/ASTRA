@@ -2,26 +2,32 @@ from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from backend.database import get_db
-from backend.models import Comment, Post, User
+from backend.models import Comment, Post, PostLike, User
 from backend.routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
 
-def serialize_post(post: Post, comments_count: int = 0) -> dict:
+def serialize_post(
+    post: Post,
+    comments_count: int = 0,
+    likes_count: int = 0,
+    liked_by_me: bool = False,
+) -> dict:
     return {
         "id": post.id,
         "content": post.content,
         "image": post.image,
         "created_at": post.created_at.isoformat(),
-        "likes_count": 0,
+        "likes_count": likes_count,
+        "liked_by_me": liked_by_me,
         "comments_count": comments_count,
         "author": {
             "id": post.author.id,
@@ -45,6 +51,35 @@ def serialize_comment(comment: Comment) -> dict:
             "avatar": comment.author.avatar,
         },
     }
+
+
+def _collect_post_stats(db: Session, post_ids: list[int], current_user_id: int) -> dict:
+    """Считает лайки, комментарии и мои лайки одним запросом на все посты."""
+    if not post_ids:
+        return {"likes": {}, "comments": {}, "my_likes": set()}
+
+    likes_counts = dict(
+        db.query(PostLike.post_id, func.count(PostLike.id))
+        .filter(PostLike.post_id.in_(post_ids))
+        .group_by(PostLike.post_id)
+        .all()
+    )
+
+    comments_counts = dict(
+        db.query(Comment.post_id, func.count(Comment.id))
+        .filter(Comment.post_id.in_(post_ids))
+        .group_by(Comment.post_id)
+        .all()
+    )
+
+    my_likes = {
+        row[0]
+        for row in db.query(PostLike.post_id)
+        .filter(PostLike.post_id.in_(post_ids), PostLike.user_id == current_user_id)
+        .all()
+    }
+
+    return {"likes": likes_counts, "comments": comments_counts, "my_likes": my_likes}
 
 
 class CommentCreate(BaseModel):
@@ -87,15 +122,18 @@ def list_posts(
         .limit(100)
         .all()
     )
-    counts = {}
-    if posts:
-        counts = dict(
-            db.query(Comment.post_id, func.count(Comment.id))
-            .filter(Comment.post_id.in_([post.id for post in posts]))
-            .group_by(Comment.post_id)
-            .all()
+
+    stats = _collect_post_stats(db, [p.id for p in posts], current_user.id)
+
+    return [
+        serialize_post(
+            post,
+            comments_count=stats["comments"].get(post.id, 0),
+            likes_count=stats["likes"].get(post.id, 0),
+            liked_by_me=post.id in stats["my_likes"],
         )
-    return [serialize_post(post, counts.get(post.id, 0)) for post in posts]
+        for post in posts
+    ]
 
 
 @router.post("/")
@@ -120,7 +158,49 @@ async def create_post(
     db.commit()
     db.refresh(post)
     post.author = current_user
-    return serialize_post(post)
+    return serialize_post(post, comments_count=0, likes_count=0, liked_by_me=False)
+
+
+@router.post("/{post_id}/like", status_code=status.HTTP_200_OK)
+def like_post(
+    post_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    post = db.query(Post.id).filter(Post.id == post_id).first()
+    if post is None:
+        raise HTTPException(404, "Публикация не найдена")
+
+    existing = db.query(PostLike).filter(
+        PostLike.post_id == post_id,
+        PostLike.user_id == current_user.id,
+    ).first()
+    if existing is None:
+        db.add(PostLike(post_id=post_id, user_id=current_user.id))
+        db.commit()
+
+    total = db.query(func.count(PostLike.id)).filter(PostLike.post_id == post_id).scalar() or 0
+    return {"likes_count": total, "liked_by_me": True}
+
+
+@router.delete("/{post_id}/like", status_code=status.HTTP_200_OK)
+def unlike_post(
+    post_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    post = db.query(Post.id).filter(Post.id == post_id).first()
+    if post is None:
+        raise HTTPException(404, "Публикация не найдена")
+
+    db.query(PostLike).filter(
+        PostLike.post_id == post_id,
+        PostLike.user_id == current_user.id,
+    ).delete()
+    db.commit()
+
+    total = db.query(func.count(PostLike.id)).filter(PostLike.post_id == post_id).scalar() or 0
+    return {"likes_count": total, "liked_by_me": False}
 
 
 @router.get("/{post_id}/comments")
