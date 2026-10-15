@@ -17,6 +17,26 @@ def serialize_user_short(user: User) -> dict:
     }
 
 
+# ============================================================
+# ВАЖНО: /me/... должно идти ДО /{username}/...
+# ============================================================
+
+@router.get("/me/following")
+def get_my_following(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Список пользователей, на которых я подписан."""
+    following = (
+        db.query(User)
+        .join(Follow, Follow.following_id == User.id)
+        .filter(Follow.follower_id == current_user.id)
+        .order_by(Follow.created_at.desc())
+        .all()
+    )
+    return [serialize_user_short(u) for u in following]
+
+
 @router.post("/{username}/follow", status_code=204)
 def follow_user(
     username: str,

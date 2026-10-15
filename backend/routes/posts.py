@@ -8,7 +8,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from backend.database import get_db
-from backend.models import Comment, Post, PostLike, User
+from backend.models import Comment, Follow, Post, PostLike, User
 from backend.routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
@@ -112,13 +112,28 @@ async def save_post_image(file: UploadFile) -> str:
 
 @router.get("/")
 def list_posts(
+    feed: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """
+    Лента постов.
+    - Без параметра: все посты.
+    - ?feed=following: только посты тех, на кого я подписан, + мои собственные.
+    """
+    query = db.query(Post).options(joinedload(Post.author))
+
+    if feed == "following":
+        following_ids = [
+            row[0]
+            for row in db.query(Follow.following_id)
+            .filter(Follow.follower_id == current_user.id)
+            .all()
+        ]
+        query = query.filter(Post.user_id.in_(following_ids))
+
     posts = (
-        db.query(Post)
-        .options(joinedload(Post.author))
-        .order_by(Post.created_at.desc(), Post.id.desc())
+        query.order_by(Post.created_at.desc(), Post.id.desc())
         .limit(100)
         .all()
     )
@@ -243,3 +258,89 @@ def create_comment(
     db.refresh(comment)
     comment.author = current_user
     return serialize_comment(comment)
+
+
+
+
+@router.get("/search")
+def search_posts(
+    q: str = "",
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    q = q.strip()
+    if not q:
+        return []
+
+    pattern = f"%{q}%"
+    posts = (
+        db.query(Post)
+        .options(joinedload(Post.author))
+        .filter(Post.content.ilike(pattern))
+        .order_by(Post.created_at.desc(), Post.id.desc())
+        .limit(50)
+        .all()
+    )
+
+    stats = _collect_post_stats(db, [p.id for p in posts], current_user.id)
+
+    return [
+        serialize_post(
+            p,
+            comments_count=stats["comments"].get(p.id, 0),
+            likes_count=stats["likes"].get(p.id, 0),
+            liked_by_me=p.id in stats["my_likes"],
+        )
+        for p in posts
+    ]
+
+
+from sqlalchemy import desc
+
+@router.get("/trending")
+def get_trending(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Топ-10 постов за последние 7 дней по лайкам."""
+    from datetime import timedelta
+    from backend.models import PostLike
+
+    since = datetime.utcnow() - timedelta(days=7)
+
+    # Берём посты за неделю + считаем лайки
+    rows = (
+        db.query(Post.id, func.count(PostLike.id).label("likes"))
+        .outerjoin(PostLike, PostLike.post_id == Post.id)
+        .filter(Post.created_at >= since)
+        .group_by(Post.id)
+        .order_by(desc("likes"))
+        .limit(10)
+        .all()
+    )
+
+    post_ids = [r[0] for r in rows]
+    if not post_ids:
+        return []
+
+    posts = (
+        db.query(Post)
+        .options(joinedload(Post.author))
+        .filter(Post.id.in_(post_ids))
+        .all()
+    )
+
+    # Сортируем как в rows
+    posts_by_id = {p.id: p for p in posts}
+    ordered = [posts_by_id[pid] for pid in post_ids if pid in posts_by_id]
+
+    stats = _collect_post_stats(db, post_ids, current_user.id)
+    return [
+        serialize_post(
+            p,
+            comments_count=stats["comments"].get(p.id, 0),
+            likes_count=stats["likes"].get(p.id, 0),
+            liked_by_me=p.id in stats["my_likes"],
+        )
+        for p in ordered
+    ]

@@ -30,6 +30,23 @@ def init_db():
     from backend import models  # noqa: F401
     Base.metadata.create_all(bind=engine)
     with engine.begin() as connection:
+        # Существующие ALTER
         connection.execute(text(
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS cover_image VARCHAR(255)"
+        ))
+        # 👇 Новые колонки для вложений
+        connection.execute(text(
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS type VARCHAR(16)"
+        ))
+        connection.execute(text(
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS file_url VARCHAR(500)"
+        ))
+        connection.execute(text(
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS file_name VARCHAR(255)"
+        ))
+        connection.execute(text(
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS file_size INTEGER"
+        ))
+        connection.execute(text(
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS mime_type VARCHAR(100)"
         ))

@@ -50,6 +50,46 @@ def serialize_public_user(
         "posts_count": posts_count,
         "is_me": bool(current_user and current_user.id == user.id),
     }
+@router.get("/search")
+def search_users(
+    q: str = "",
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    q = q.strip()
+    if not q:
+        return []
+
+    pattern = f"%{q}%"
+    users = (
+        db.query(User)
+        .filter(
+            User.id != current_user.id,
+            (User.username.ilike(pattern)) | (User.full_name.ilike(pattern)),
+        )
+        .limit(20)
+        .all()
+    )
+
+    from backend.models import Follow
+    following_ids = {
+        row[0]
+        for row in db.query(Follow.following_id)
+        .filter(Follow.follower_id == current_user.id)
+        .all()
+    }
+
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "full_name": u.full_name,
+            "avatar": u.avatar,
+            "bio": u.bio,
+            "is_following": u.id in following_ids,
+        }
+        for u in users
+    ]
 
 @router.get("/{username}")
 def get_user_profile(
@@ -124,3 +164,5 @@ def get_user_posts(
         )
         for post in posts
     ]
+
+

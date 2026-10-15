@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PostCard } from "../post/PostCard";
-// import { ModalPost } from './components/modal/Modal';
+import PostComposer from '../post/PostComposer';
 
 export function HomePage({
     posts,
@@ -11,16 +11,14 @@ export function HomePage({
     onOpenSidebar,
     user,
     isDarkTheme,
+    onPostCreated,
 }) {
     const navigate = useNavigate();
     const headerRef = useRef(null);
-    const lastYRef = useRef(0);
     const tickingRef = useRef(false);
-    const [headerHidden, setHeaderHidden] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
-        // Все возможные скролл-контейнеры: и окно, и внутренние обёртки.
-        // Какой бы ни скроллился — мы это поймаем.
         const candidates = [
             document.querySelector('.app-center-content'),
             document.querySelector('.app-shell-content'),
@@ -39,29 +37,10 @@ export function HomePage({
             return max;
         };
 
-        lastYRef.current = getY();
-
         const update = () => {
             tickingRef.current = false;
-
             const y = getY();
-            const delta = y - lastYRef.current;
-
-            // Порог, чтобы микро-дрожание пальца не переключало шапку
-            if (Math.abs(delta) < 6) return;
-
-            if (y < 40) {
-                // Близко к верху — всегда показываем
-                setHeaderHidden(false);
-            } else if (delta > 0) {
-                // Скролл вниз — прячем
-                setHeaderHidden(true);
-            } else {
-                // Скролл вверх — показываем
-                setHeaderHidden(false);
-            }
-
-            lastYRef.current = y;
+            setScrolled(y > 0);
         };
 
         const onScroll = () => {
@@ -75,6 +54,9 @@ export function HomePage({
             el.addEventListener('scroll', onScroll, { passive: true });
         }
 
+        // на случай, если страница уже была прокручена при монтировании
+        update();
+
         return () => {
             for (const el of candidates) {
                 el.removeEventListener('scroll', onScroll);
@@ -82,15 +64,24 @@ export function HomePage({
         };
     }, []);
 
+    const handlePostCreated = (newPost) => {
+        if (onPostCreated) {
+            onPostCreated(newPost);
+        } else {
+            window.location.reload();
+        }
+    };
+
+    const headerClassName = [
+        'home-page-header',
+        scrolled ? 'home-page-header-scrolled' : '',
+    ].filter(Boolean).join(' ');
+
     return (
         <div className="home-page">
-            <div
-                ref={headerRef}
-                className={`home-page-header ${headerHidden ? 'home-page-header-hidden' : ''}`}
-            >
+            <div ref={headerRef} className={headerClassName}>
                 {/* ВЕРХНИЙ РЯД — аватар / логотип / уведомления */}
                 <div className="home-page-header-topbar">
-                    {/* Слева — аватар, тап открывает боковое меню */}
                     <button
                         type="button"
                         className="home-page-header-avatar-btn"
@@ -110,7 +101,6 @@ export function HomePage({
                         )}
                     </button>
 
-                    {/* По центру — логотип */}
                     <div className="home-page-header-logo">
                         <img
                             src={isDarkTheme ? '/logoDark(1).png' : '/logo(1).jpg'}
@@ -118,7 +108,6 @@ export function HomePage({
                         />
                     </div>
 
-                    {/* Справа — иконка уведомлений */}
                     <button
                         type="button"
                         className="home-page-header-notifications-btn"
@@ -148,6 +137,11 @@ export function HomePage({
             </div>
 
             <div className="home-page-feed">
+                <PostComposer
+                    user={user}
+                    onPostCreated={handlePostCreated}
+                />
+
                 {posts.map(post => (
                     <PostCard
                         key={post.id}

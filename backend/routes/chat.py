@@ -1,6 +1,17 @@
 from datetime import datetime
+from pathlib import Path
+from uuid import uuid4
+import os
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from jose import JWTError, jwt
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -22,7 +33,7 @@ class ConversationCreate(BaseModel):
 
 
 class GroupCreate(BaseModel):
-    """Создать группу. Минимум 1 приглашённый (вы добавляетесь автоматически)."""
+    """Создать группу. Минимум 1 приглашённый."""
     title: str = Field(min_length=1, max_length=120)
     user_ids: list[int] = Field(min_length=1, max_length=50)
     avatar_url: str | None = Field(default=None, max_length=255)
@@ -38,7 +49,20 @@ class MemberAdd(BaseModel):
 
 
 class MessageCreate(BaseModel):
-    text: str = Field(min_length=1, max_length=5000)
+    text: str = Field(default="", max_length=5000)
+    type: str | None = None           # "image" | "file" | None
+    file_url: str | None = None
+    file_name: str | None = None
+    file_size: int | None = None
+    mime_type: str | None = None
+
+
+class GroupSettingsUpdate(BaseModel):
+    group_type: str | None = Field(default=None, pattern="^(private|public)$")
+    reactions_mode: str | None = Field(default=None, pattern="^(all|some|none)$")
+    topics_enabled: bool | None = None
+    history_for_new: bool | None = None
+    permissions: dict | None = None
 
 
 # ============ ХЕЛПЕРЫ ============
@@ -54,7 +78,6 @@ def serialize_user_short(user: User) -> dict:
 
 
 def serialize_user_with_status(user: User, role: str | None = None) -> dict:
-    """Юзер + online + роль (для списка участников группы)."""
     data = {
         **serialize_user_short(user),
         "online": manager.is_online(user.id),
@@ -72,6 +95,11 @@ def serialize_message(message: Message, current_user_id: int) -> dict:
         "is_me": message.sender_id == current_user_id,
         "sender_id": message.sender_id,
         "sender_name": message.sender.full_name if message.sender else None,
+        "type": message.type,
+        "file_url": message.file_url,
+        "file_name": message.file_name,
+        "file_size": message.file_size,
+        "mime_type": message.mime_type,
         "read_at": message.read_at.isoformat() if message.read_at else None,
         "created_at": message.created_at.isoformat(),
     }
@@ -84,6 +112,11 @@ def serialize_message_raw(message: Message) -> dict:
         "text": message.text,
         "sender_id": message.sender_id,
         "sender_name": message.sender.full_name if message.sender else None,
+        "type": message.type,
+        "file_url": message.file_url,
+        "file_name": message.file_name,
+        "file_size": message.file_size,
+        "mime_type": message.mime_type,
         "read_at": message.read_at.isoformat() if message.read_at else None,
         "created_at": message.created_at.isoformat(),
     }
@@ -106,7 +139,6 @@ def is_member(db: Session, conversation_id: int, user_id: int) -> bool:
 
 
 def find_direct_conversation(db: Session, user_a: int, user_b: int) -> Conversation | None:
-    """Найти существующий 1-на-1 диалог между двумя юзерами."""
     ids_a = select(ConversationMember.conversation_id).where(
         ConversationMember.user_id == user_a
     ).scalar_subquery()
@@ -172,16 +204,24 @@ def build_conversation_payload(
         other = next((m for m in members if m.id != current_user_id), None)
         if other is None and members:
             other = members[0]
-        display_name = (
-            other.full_name or other.username
-            if other else "Диалог"
-        )
+        display_name = (other.full_name or other.username) if other else "Диалог"
         display_avatar = other.avatar if other else "/default-avatar.png"
         payload_user = serialize_user_short(other) if other else None
     else:
         display_name = conv.title or "Группа"
         display_avatar = conv.avatar_url or "/default-avatar.png"
         payload_user = None
+
+    # Превью последнего сообщения с учётом типа
+    if last_message:
+        if last_message.type == "image":
+            preview = "📷 Фото"
+        elif last_message.type == "file":
+            preview = f"📎 {last_message.file_name or 'Файл'}"
+        else:
+            preview = last_message.text or ""
+    else:
+        preview = ""
 
     return {
         "id": conv.id,
@@ -192,7 +232,7 @@ def build_conversation_payload(
         "display_avatar": display_avatar,
         "user": payload_user,
         "members_count": len(members),
-        "last_message": last_message.text if last_message else "",
+        "last_message": preview,
         "last_message_at": (
             last_message.created_at.isoformat()
             if last_message
@@ -209,9 +249,6 @@ def get_online_users(
     ids: str,
     current_user: User = Depends(get_current_user),
 ):
-    """Список id юзеров, которые сейчас онлайн.
-    Пример: /api/chat/users/online?ids=1,2,3
-    """
     user_ids = []
     for x in ids.split(","):
         x = x.strip()
@@ -228,7 +265,6 @@ def get_user_status(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Статус одного юзера: онлайн / когда был последний раз."""
     user = db.get(User, user_id)
     if user is None:
         raise HTTPException(404, "Пользователь не найден")
@@ -300,7 +336,6 @@ def create_group_conversation(
         if uid != current_user.id:
             member_ids.add(uid)
 
-    # ты + минимум 1 приглашённый
     if len(member_ids) < 2:
         raise HTTPException(400, "В группе должно быть минимум 2 участника (вы + 1)")
 
@@ -581,14 +616,19 @@ async def send_message(
     if not is_member(db, conversation_id, current_user.id):
         raise HTTPException(403, "Нет доступа к этому диалогу")
 
-    text = data.text.strip()
-    if not text:
+    text = (data.text or "").strip()
+    if not text and not data.file_url:
         raise HTTPException(400, "Сообщение не может быть пустым")
 
     message = Message(
         conversation_id=conversation_id,
         sender_id=current_user.id,
         text=text,
+        type=data.type,
+        file_url=data.file_url,
+        file_name=data.file_name,
+        file_size=data.file_size,
+        mime_type=data.mime_type,
     )
     db.add(message)
     conv.updated_at = datetime.utcnow()
@@ -607,6 +647,41 @@ async def send_message(
     )
 
     return serialize_message(message, current_user.id)
+
+
+# ============ ЗАГРУЗКА ФАЙЛОВ ============
+
+@router.post("/conversations/{conversation_id}/upload", status_code=201)
+async def upload_chat_file(
+    conversation_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conv = db.get(Conversation, conversation_id)
+    if conv is None:
+        raise HTTPException(404, "Диалог не найден")
+    if not is_member(db, conversation_id, current_user.id):
+        raise HTTPException(403, "Нет доступа")
+
+    upload_dir = Path(os.getenv("UPLOAD_DIR", "/app/uploads")) / "chat"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    ext = Path(file.filename or "").suffix or ".bin"
+    filename = f"{uuid4().hex}{ext}"
+    content = await file.read()
+
+    if len(content) > 25 * 1024 * 1024:
+        raise HTTPException(413, "Файл слишком большой (макс. 25 МБ)")
+
+    (upload_dir / filename).write_bytes(content)
+
+    return {
+        "url": f"/uploads/chat/{filename}",
+        "file_name": file.filename,
+        "file_size": len(content),
+        "mime_type": file.content_type,
+    }
 
 
 # ============ WEBSOCKET ============
@@ -648,14 +723,7 @@ async def chat_websocket(websocket: WebSocket, token: str | None = None):
         manager.disconnect(user_id, websocket)
 
 
-
-class GroupSettingsUpdate(BaseModel):
-    group_type: str | None = Field(default=None, pattern="^(private|public)$")
-    reactions_mode: str | None = Field(default=None, pattern="^(all|some|none)$")
-    topics_enabled: bool | None = None
-    history_for_new: bool | None = None
-    permissions: dict | None = None
-
+# ============ НАСТРОЙКИ ГРУППЫ ============
 
 @router.patch("/conversations/{conversation_id}/settings")
 def update_group_settings(
@@ -679,8 +747,6 @@ def update_group_settings(
     if me is None or me.role not in ("owner", "admin"):
         raise HTTPException(403, "Только владелец или админ")
 
-    # Здесь можно сохранить в JSON-поле или отдельной таблице.
-    # Простейший вариант — просто заглушка, возвращаем принятые значения.
     return {
         "ok": True,
         "group_type": data.group_type,

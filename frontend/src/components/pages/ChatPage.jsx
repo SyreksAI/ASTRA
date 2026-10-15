@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { NewChatModal } from '../modal/NewChatModal';
 import { CreateGroupModal } from '../modal/CreateGroupModal';
+import { groupMessages } from '../utils/groupMessages';
 
 function formatTime(iso) {
     if (!iso) return '';
@@ -86,10 +87,135 @@ function BackIcon() {
     );
 }
 
+function StarIcon({ filled = false, size = 20 }) {
+    if (filled) {
+        return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor">
+                <path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.6 6.8L12 17.8 5.8 20.4l1.6-6.8L2.2 9l6.9-.7L12 2z" />
+            </svg>
+        );
+    }
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} fill="none"
+            stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.6 6.8L12 17.8 5.8 20.4l1.6-6.8L2.2 9l6.9-.7L12 2z" />
+        </svg>
+    );
+}
+
+// ===== Иконки для контекстного меню сообщения =====
+function ReplyIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 17 4 12 9 7" />
+            <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+        </svg>
+    );
+}
+
+function EditIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+    );
+}
+
+function PhotoEditIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34" />
+            <polygon points="18 2 22 6 12 16 8 16 8 12 18 2" />
+        </svg>
+    );
+}
+
+function PinIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="17" x2="12" y2="22" />
+            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
+        </svg>
+    );
+}
+
+function ForwardIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 17 20 12 15 7" />
+            <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+        </svg>
+    );
+}
+
+function SelectIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="8 12 11 15 16 9" />
+        </svg>
+    );
+}
+
+function DeleteIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+            <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+        </svg>
+    );
+}
+
+function CopyIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+    );
+}
+
+function MessageMenuArrowIcon() {
+    return (
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+        </svg>
+    );
+}
+
+function useIsDarkTheme() {
+    const [isDark, setIsDark] = useState(() =>
+        typeof document !== 'undefined'
+            ? document.body.classList.contains('dark-theme')
+            : false
+    );
+
+    useEffect(() => {
+        if (typeof document === 'undefined') return;
+        const observer = new MutationObserver(() => {
+            setIsDark(document.body.classList.contains('dark-theme'));
+        });
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class'],
+        });
+        return () => observer.disconnect();
+    }, []);
+
+    return isDark;
+}
+
 export function ChatPage() {
     const { conversationId } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const isDarkThemeLocal = useIsDarkTheme();
+    const isDarkTheme = isDarkThemeLocal;
 
     const [conversations, setConversations] = useState([]);
     const [activeId, setActiveId] = useState(conversationId ? Number(conversationId) : null);
@@ -106,6 +232,10 @@ export function ChatPage() {
     const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
     const [isInfoOpen, setIsInfoOpen] = useState(false);
     const [emojiOpen, setEmojiOpen] = useState(false);
+
+    const [onlySubscriptions, setOnlySubscriptions] = useState(false);
+    const [subscriptionIds, setSubscriptionIds] = useState(new Set());
+    const [loadingSubscriptions, setLoadingSubscriptions] = useState(false);
 
     const [groupMembers, setGroupMembers] = useState([]);
     const [loadingMembers, setLoadingMembers] = useState(false);
@@ -146,14 +276,56 @@ export function ChatPage() {
         { id: 1, code: 'astra-demo-1', uses: 0 },
     ]);
 
+    // ===== Загрузка медиа =====
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [pendingImages, setPendingImages] = useState([]);
+    const [pendingCaption, setPendingCaption] = useState('');
+    const [pendingSpoiler, setPendingSpoiler] = useState(false);
+    const [sendAsFile, setSendAsFile] = useState(false);
+    const [dragOver, setDragOver] = useState(false);
+    const [viewerState, setViewerState] = useState(null);
+    const [photoMenuOpen, setPhotoMenuOpen] = useState(false);
+    const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+
+    // ===== Скролл =====
+    const [showScrollDown, setShowScrollDown] = useState(false);
+
+    // ===== Контекстное меню сообщения =====
+    const [messageMenu, setMessageMenu] = useState(null);
+    const messageMenuRef = useRef(null);
+
+    // ===== Ответ / Редактирование / Закрепление =====
+    const [replyTo, setReplyTo] = useState(null);
+    const [editingMessage, setEditingMessage] = useState(null);
+    const [pinnedMessage, setPinnedMessage] = useState(null);
+
+    // ===== Подсветка сообщения (при клике на цитату/закреп) =====
+    const [highlightedId, setHighlightedId] = useState(null);
+    const highlightTimerRef = useRef(null);
+
+    // ===== Режим выбора =====
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState(new Set());
+    const [copyToast, setCopyToast] = useState('');
+
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
+    const prevMessagesLengthRef = useRef(0);
     const wsRef = useRef(null);
     const reconnectTimerRef = useRef(null);
     const fileInputRef = useRef(null);
+    const addMoreInputRef = useRef(null);
     const emojiPanelRef = useRef(null);
+    const dragCounterRef = useRef(0);
+    const photoMenuRef = useRef(null);
+    const inputRef = useRef(null);
 
     const token = localStorage.getItem('token');
-    const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+    const authHeaders = useMemo(
+        () => (token ? { Authorization: `Bearer ${token}` } : {}),
+        [token]
+    );
 
     const activeConversation = useMemo(
         () => conversations.find((c) => c.id === activeId) || null,
@@ -168,6 +340,11 @@ export function ChatPage() {
 
     const canManageGroup = myRole === 'owner' || myRole === 'admin';
 
+    const handleOpenSidebar = () => {
+        window.dispatchEvent(new Event('openSidebar'));
+    };
+
+    // ================== Загрузка списка чатов ==================
     useEffect(() => {
         setLoadingList(true);
         fetch('/api/chat/conversations', { headers: authHeaders })
@@ -187,6 +364,36 @@ export function ChatPage() {
     }, [user?.id]);
 
     useEffect(() => {
+        if (!user?.id) return;
+
+        let cancelled = false;
+        setLoadingSubscriptions(true);
+
+        fetch('/api/users/me/following', { headers: authHeaders })
+            .then((r) => (r.ok ? r.json() : []))
+            .then((data) => {
+                if (cancelled) return;
+                const ids = Array.isArray(data)
+                    ? data.map((u) => u.id ?? u.user_id ?? u.following_id)
+                    : Array.isArray(data?.ids)
+                        ? data.ids
+                        : [];
+                setSubscriptionIds(new Set(ids.filter((id) => id != null)));
+            })
+            .catch(() => {
+                if (!cancelled) setSubscriptionIds(new Set());
+            })
+            .finally(() => {
+                if (!cancelled) setLoadingSubscriptions(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
+
+    useEffect(() => {
         if (conversationId) setActiveId(Number(conversationId));
         else setActiveId(null);
     }, [conversationId]);
@@ -202,8 +409,13 @@ export function ChatPage() {
             .then((r) => (r.ok ? r.json() : null))
             .then((data) => {
                 if (data) {
-                    setMessages(data.messages || []);
+                    const list = Array.isArray(data.messages) ? [...data.messages] : [];
+                    list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    setMessages(list);
                     setActiveUser(data.user || null);
+                    // Находим закреплённое сообщение при загрузке
+                    const pinned = list.find((m) => m.pinned);
+                    setPinnedMessage(pinned || null);
                 } else {
                     setMessages([]);
                     setActiveUser(null);
@@ -217,6 +429,7 @@ export function ChatPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeId]);
 
+    // ================== WebSocket ==================
     useEffect(() => {
         if (!user?.id || !token) return;
 
@@ -271,11 +484,16 @@ export function ChatPage() {
                                 .catch(() => {});
                             return prev;
                         }
+                        const previewText = enriched.text
+                            ? enriched.text
+                            : enriched.type === 'image'
+                                ? '📷 Фото'
+                                : '📎 Файл';
                         return prev.map((c) =>
                             c.id === enriched.conversation_id
                                 ? {
                                       ...c,
-                                      last_message: enriched.text,
+                                      last_message: previewText,
                                       last_message_at: enriched.created_at,
                                       has_unread: activeId !== enriched.conversation_id,
                                   }
@@ -310,6 +528,7 @@ export function ChatPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id]);
 
+    // ================== Онлайн-статусы ==================
     useEffect(() => {
         if (conversations.length === 0) return;
         const ids = conversations
@@ -361,6 +580,7 @@ export function ChatPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeConversation?.user?.id, activeUser?.id, activeConversation?.type]);
 
+    // ================== Участники группы ==================
     useEffect(() => {
         if (!activeId) {
             setGroupMembers([]);
@@ -382,6 +602,7 @@ export function ChatPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeId, activeConversation?.type]);
 
+    // ================== Общие группы ==================
     useEffect(() => {
         if (!isInfoOpen) return;
         if (activeConversation?.type !== 'direct') {
@@ -423,10 +644,48 @@ export function ChatPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isInfoOpen, activeId, activeConversation?.type, activeConversation?.user?.id]);
 
+    // ================== Функции скролла ==================
+    const scrollToBottom = useCallback((behavior = 'smooth') => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+        container.scrollTo({ top: 0, behavior });
+    }, []);
+
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (!activeId) return;
+        const container = messagesContainerRef.current;
+        if (!container) return;
+        requestAnimationFrame(() => {
+            container.scrollTop = 0;
+            setShowScrollDown(false);
+        });
+    }, [activeId]);
+
+    useEffect(() => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        const prevLen = prevMessagesLengthRef.current;
+        const newLen = messages.length;
+        prevMessagesLengthRef.current = newLen;
+
+        if (prevLen === 0 && newLen > 0) {
+            container.scrollTop = 0;
+            setShowScrollDown(false);
+            return;
+        }
+
+        if (container.scrollTop < 120) {
+            container.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     }, [messages]);
 
+    const handleMessagesScroll = useCallback((e) => {
+        const container = e.currentTarget;
+        setShowScrollDown(container.scrollTop > 200);
+    }, []);
+
+    // ================== Сброс UI при смене чата ==================
     useEffect(() => {
         setIsInfoOpen(false);
         setEmojiOpen(false);
@@ -434,6 +693,13 @@ export function ChatPage() {
         setMenuPage(null);
         setIsGroupSettingsOpen(false);
         setSettingsPage(null);
+        setMessageMenu(null);
+        setReplyTo(null);
+        setEditingMessage(null);
+        setPinnedMessage(null);
+        setSelectionMode(false);
+        setSelectedIds(new Set());
+        clearPendingImage();
         setInfoTab(
             conversations.find((c) => c.id === activeId)?.type === 'group'
                 ? 'members'
@@ -449,6 +715,7 @@ export function ChatPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isInfoOpen, activeConversation?.type]);
 
+    // ================== Закрытие emoji panel ==================
     useEffect(() => {
         if (!emojiOpen) return;
         const onDocClick = (e) => {
@@ -462,6 +729,7 @@ export function ChatPage() {
         return () => document.removeEventListener('mousedown', onDocClick);
     }, [emojiOpen]);
 
+    // ================== Закрытие меню ==================
     useEffect(() => {
         if (!menuOpen) return;
         const onDocClick = (e) => {
@@ -484,6 +752,87 @@ export function ChatPage() {
         };
     }, [menuOpen, menuPage]);
 
+    // ================== Закрытие мини-меню фото ==================
+    useEffect(() => {
+        if (!photoMenuOpen) return;
+        const onDocClick = (e) => {
+            if (photoMenuRef.current && !photoMenuRef.current.contains(e.target)) {
+                setPhotoMenuOpen(false);
+            }
+        };
+        const onEsc = (e) => {
+            if (e.key === 'Escape') setPhotoMenuOpen(false);
+        };
+        document.addEventListener('mousedown', onDocClick);
+        document.addEventListener('keydown', onEsc);
+        return () => {
+            document.removeEventListener('mousedown', onDocClick);
+            document.removeEventListener('keydown', onEsc);
+        };
+    }, [photoMenuOpen]);
+
+    // ================== Закрытие контекстного меню сообщения ==================
+    useEffect(() => {
+        if (!messageMenu) return;
+
+        const onDocClick = (e) => {
+            if (messageMenuRef.current && !messageMenuRef.current.contains(e.target)) {
+                setMessageMenu(null);
+            }
+        };
+        const onEsc = (e) => {
+            if (e.key === 'Escape') setMessageMenu(null);
+        };
+        const onScroll = () => setMessageMenu(null);
+
+        const timer = setTimeout(() => {
+            document.addEventListener('mousedown', onDocClick);
+        }, 0);
+
+        document.addEventListener('keydown', onEsc);
+        window.addEventListener('scroll', onScroll, true);
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('mousedown', onDocClick);
+            document.removeEventListener('keydown', onEsc);
+            window.removeEventListener('scroll', onScroll, true);
+        };
+    }, [messageMenu]);
+
+    // ================== Escape для режима выбора ==================
+    useEffect(() => {
+        if (!selectionMode) return;
+        const onKey = (e) => {
+            if (e.key === 'Escape') {
+                setSelectionMode(false);
+                setSelectedIds(new Set());
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [selectionMode]);
+
+    // ================== Клавиши для полноэкранного просмотра ==================
+    useEffect(() => {
+        if (!viewerState) return;
+        const onKey = (e) => {
+            if (e.key === 'Escape') setViewerState(null);
+            else if (e.key === 'ArrowRight') {
+                setViewerState((s) =>
+                    s ? { ...s, index: (s.index + 1) % s.images.length } : s
+                );
+            } else if (e.key === 'ArrowLeft') {
+                setViewerState((s) =>
+                    s ? { ...s, index: (s.index - 1 + s.images.length) % s.images.length } : s
+                );
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [viewerState]);
+
+    // ================== Обработчики ==================
     const handleSelectConversation = (id) => {
         setActiveId(id);
         navigate(`/chat/${id}`, { replace: true });
@@ -499,17 +848,255 @@ export function ChatPage() {
         if (!newMessage.trim() || !activeId) return;
 
         setEmojiOpen(false);
+
+        if (editingMessage) {
+            const text = newMessage.trim();
+            try {
+                const response = await fetch(
+                    `/api/chat/conversations/${activeId}/messages/${editingMessage.id}`,
+                    {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', ...authHeaders },
+                        body: JSON.stringify({ text }),
+                    }
+                );
+                if (!response.ok) throw new Error('Не удалось отредактировать');
+                const saved = await response.json();
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === editingMessage.id
+                            ? { ...m, text, edited: true, updated_at: saved.updated_at || m.updated_at }
+                            : m
+                    )
+                );
+                setConversations((prev) =>
+                    prev.map((c) =>
+                        c.id === activeId
+                            ? { ...c, last_message: text, last_message_at: saved.updated_at || c.last_message_at }
+                            : c
+                    )
+                );
+            } catch (err) {
+                console.error(err);
+                alert('Не удалось сохранить изменения');
+            } finally {
+                setEditingMessage(null);
+                setNewMessage('');
+            }
+            return;
+        }
+
         const text = newMessage.trim();
         setNewMessage('');
 
         try {
+            const payload = { text };
+            if (replyTo) payload.reply_to_id = replyTo.id;
+
             const response = await fetch(`/api/chat/conversations/${activeId}/messages`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
-                body: JSON.stringify({ text }),
+                body: JSON.stringify(payload),
             });
             if (!response.ok) throw new Error('Не удалось отправить');
             const saved = await response.json();
+
+            const enrichedSaved = {
+                ...saved,
+                sender_name:
+                    saved.sender_name || user?.full_name || user?.username || '',
+                sender_username:
+                    saved.sender_username || user?.username || '',
+                reply_to: replyTo
+                    ? {
+                          id: replyTo.id,
+                          text: replyTo.text,
+                          sender_name: replyTo.sender_name,
+                          type: replyTo.type,
+                      }
+                    : null,
+            };
+
+            setMessages((prev) => {
+                if (prev.some((m) => m.id === enrichedSaved.id)) return prev;
+                return [...prev, enrichedSaved];
+            });
+
+            setConversations((prev) =>
+                prev.map((c) =>
+                    c.id === activeId
+                        ? { ...c, last_message: text, last_message_at: saved.created_at }
+                        : c
+                )
+            );
+
+            setReplyTo(null);
+        } catch (err) {
+            console.error(err);
+            setNewMessage(text);
+        }
+    };
+
+    const handleFilePick = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        e.target.value = '';
+        processSelectedFile(file);
+    };
+
+    const processSelectedFile = (file) => {
+        if (!file) return;
+        const isImage = file.type.startsWith('image/');
+        if (isImage) {
+            const previewUrl = URL.createObjectURL(file);
+            setPendingImages((prev) => {
+                const next = [...prev, { file, previewUrl }];
+                setActivePhotoIndex(next.length - 1);
+                return next;
+            });
+            setPendingCaption('');
+            setPendingSpoiler(false);
+            setSendAsFile(false);
+            setPhotoMenuOpen(false);
+        } else {
+            uploadAndSendFile(file, false);
+        }
+    };
+
+    const handleAddMorePhotos = (e) => {
+        const files = Array.from(e.target.files || []);
+        e.target.value = '';
+        if (files.length === 0) return;
+
+        const newImages = files
+            .filter((f) => f.type.startsWith('image/'))
+            .map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
+
+        if (newImages.length === 0) return;
+
+        setPendingImages((prev) => {
+            const next = [...prev, ...newImages];
+            setActivePhotoIndex(next.length - 1);
+            return next;
+        });
+        setPhotoMenuOpen(false);
+    };
+
+    const clearPendingImage = useCallback(() => {
+        setPendingImages((prev) => {
+            prev.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+            return [];
+        });
+        setPendingCaption('');
+        setPendingSpoiler(false);
+        setSendAsFile(false);
+        setPhotoMenuOpen(false);
+        setActivePhotoIndex(0);
+    }, []);
+
+    const removePhoto = (index) => {
+        setPendingImages((prev) => {
+            const img = prev[index];
+            if (img?.previewUrl) URL.revokeObjectURL(img.previewUrl);
+            const next = prev.filter((_, i) => i !== index);
+            if (next.length === 0) {
+                clearPendingImage();
+            } else {
+                setActivePhotoIndex((cur) => Math.min(cur, next.length - 1));
+            }
+            return next;
+        });
+    };
+
+    const handleSendImage = async () => {
+        if (pendingImages.length === 0 || !activeId) return;
+        const files = [...pendingImages];
+        const caption = pendingCaption.trim();
+        const spoiler = pendingSpoiler;
+        const asFile = sendAsFile;
+        clearPendingImage();
+
+        for (let i = 0; i < files.length; i += 1) {
+            const extras = i === 0 ? { caption, spoiler } : {};
+            await uploadAndSendFile(files[i].file, !asFile, extras);
+        }
+    };
+
+    const handleCancelImage = () => {
+        clearPendingImage();
+    };
+
+    const uploadAndSendFile = async (file, isImage = false, extras = {}) => {
+        if (!activeId) return;
+
+        const { caption = '', spoiler = false } = extras;
+
+        setUploading(true);
+        setUploadProgress(0);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadRes = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `/api/chat/conversations/${activeId}/upload`);
+                if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        setUploadProgress(percent);
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            resolve(JSON.parse(xhr.responseText));
+                        } catch {
+                            reject(new Error('Некорректный ответ сервера'));
+                        }
+                    } else {
+                        reject(new Error(`Ошибка загрузки: ${xhr.status}`));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Сетевая ошибка'));
+                xhr.send(formData);
+            });
+
+            const fileUrl = uploadRes.url || uploadRes.file_url;
+
+            const messagePayload = isImage
+                ? {
+                      text: caption,
+                      type: 'image',
+                      file_url: fileUrl,
+                      file_name: file.name,
+                      file_size: file.size,
+                      mime_type: file.type,
+                      spoiler,
+                  }
+                : {
+                      text: caption || file.name,
+                      type: 'file',
+                      file_url: fileUrl,
+                      file_name: file.name,
+                      file_size: file.size,
+                      mime_type: file.type,
+                  };
+
+            const msgRes = await fetch(
+                `/api/chat/conversations/${activeId}/messages`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders },
+                    body: JSON.stringify(messagePayload),
+                }
+            );
+
+            if (!msgRes.ok) throw new Error('Не удалось отправить сообщение');
+            const saved = await msgRes.json();
 
             const enrichedSaved = {
                 ...saved,
@@ -527,23 +1114,83 @@ export function ChatPage() {
             setConversations((prev) =>
                 prev.map((c) =>
                     c.id === activeId
-                        ? { ...c, last_message: text, last_message_at: saved.created_at }
+                        ? {
+                              ...c,
+                              last_message: isImage ? '📷 Фото' : `📎 ${file.name}`,
+                              last_message_at: saved.created_at,
+                          }
                         : c
                 )
             );
         } catch (err) {
-            console.error(err);
-            setNewMessage(text);
+            console.error('Ошибка загрузки файла:', err);
+            alert(err.message || 'Не удалось загрузить файл');
+        } finally {
+            setUploading(false);
+            setUploadProgress(0);
         }
     };
 
-    const handleFilePick = (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        console.log('Выбран файл:', file.name, file.size, file.type);
-        e.target.value = '';
-    };
+    // ---- Drag & Drop ----
+    const handleDragEnter = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterRef.current += 1;
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            setDragOver(true);
+        }
+    }, []);
 
+    const handleDragLeave = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterRef.current -= 1;
+        if (dragCounterRef.current === 0) {
+            setDragOver(false);
+        }
+    }, []);
+
+    const handleDragOver = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    }, []);
+
+    const handleDrop = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOver(false);
+        dragCounterRef.current = 0;
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            processSelectedFile(files[0]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // ---- Вставка изображения из буфера ----
+    useEffect(() => {
+        const handlePaste = (e) => {
+            if (!activeId) return;
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        e.preventDefault();
+                        processSelectedFile(file);
+                    }
+                    break;
+                }
+            }
+        };
+        document.addEventListener('paste', handlePaste);
+        return () => document.removeEventListener('paste', handlePaste);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeId]);
+
+    // ================== Новый чат / группа ==================
     const handleStartNewChat = async (otherUser) => {
         try {
             const response = await fetch('/api/chat/conversations', {
@@ -591,6 +1238,7 @@ export function ChatPage() {
         }
     };
 
+    // ================== Меню чата ==================
     const openSubmenu = (page) => setMenuPage(page);
     const closeMenu = () => { setMenuOpen(false); setMenuPage(null); };
 
@@ -709,9 +1357,15 @@ export function ChatPage() {
         setInviteLinks((prev) => prev.filter((l) => l.id !== id));
 
     const handleCallUser = () => { closeMenu(); alert('Звонки в разработке'); };
-    const handleSelectMessages = () => { closeMenu(); alert('Выбор сообщений в разработке'); };
     const handleAddToContacts = () => { closeMenu(); alert('Контакты в разработке'); };
     const handleSendGift = () => { closeMenu(); alert('Подарки в разработке'); };
+
+    // «Выбрать сообщения» из меню чата — вход в режим выбора
+    const handleSelectMessages = () => {
+        closeMenu();
+        setSelectionMode(true);
+        setSelectedIds(new Set());
+    };
 
     const handleBlockUser = () =>
         setChatSettings((s) => ({ ...s, blocked: !s.blocked }));
@@ -751,16 +1405,386 @@ export function ChatPage() {
         alert(`Видеозвонок: ${targetName} — в разработке`);
     };
 
-    const filteredConversations = conversations.filter((c) => {
-        if (!search.trim()) return true;
-        const q = search.trim().toLowerCase();
-        const name =
-            c.display_name?.toLowerCase() ||
-            c.user?.full_name?.toLowerCase() ||
-            c.user?.username?.toLowerCase() ||
-            '';
-        return name.includes(q);
-    });
+    // ================== Контекстное меню сообщения ==================
+    const openMessageMenu = (e, message) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (messageMenu) {
+            setMessageMenu(null);
+            return;
+        }
+
+        const MENU_WIDTH = 230;
+        const MENU_HEIGHT = 340;
+        const PADDING = 10;
+
+        let x = e.clientX;
+        let y = e.clientY;
+
+        if (x + MENU_WIDTH > window.innerWidth - PADDING) {
+            x = window.innerWidth - MENU_WIDTH - PADDING;
+        }
+        if (y + MENU_HEIGHT > window.innerHeight - PADDING) {
+            y = window.innerHeight - MENU_HEIGHT - PADDING;
+        }
+        if (x < PADDING) x = PADDING;
+        if (y < PADDING) y = PADDING;
+
+        setMessageMenu({ x, y, message });
+    };
+
+    // ================== Прокрутка к сообщению ==================
+    const scrollToMessage = (id) => {
+        if (id == null) return;
+        const container = messagesContainerRef.current;
+        if (!container) return;
+        const el = container.querySelector(`[data-message-id="${id}"]`);
+        if (!el) return;
+
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setHighlightedId(id);
+        if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+        highlightTimerRef.current = setTimeout(() => {
+            setHighlightedId(null);
+        }, 1600);
+    };
+
+    // ---- Ответить ----
+    const handleReplyMessage = () => {
+        if (!messageMenu) return;
+        const msg = messageMenu.message;
+        setReplyTo(msg);
+        setEditingMessage(null);
+        setMessageMenu(null);
+        setTimeout(() => inputRef.current?.focus(), 0);
+    };
+
+    const cancelReply = () => setReplyTo(null);
+
+    // ---- Редактировать ----
+    const handleEditMessage = () => {
+        if (!messageMenu) return;
+        const msg = messageMenu.message;
+        if (msg.sender_id !== user?.id) {
+            setMessageMenu(null);
+            return;
+        }
+        if (msg.type === 'image' || msg.type === 'file') {
+            setMessageMenu(null);
+            return;
+        }
+        setEditingMessage(msg);
+        setNewMessage(msg.text || '');
+        setMessageMenu(null);
+        setTimeout(() => inputRef.current?.focus(), 0);
+    };
+
+    const cancelEdit = () => {
+        setEditingMessage(null);
+        setNewMessage('');
+    };
+
+    // ---- Редактировать фото ----
+    const handleEditMessagePhoto = () => {
+        if (!messageMenu) return;
+        const msg = messageMenu.message;
+        setMessageMenu(null);
+        alert('Редактирование фото — в разработке');
+        console.log('Edit photo:', msg);
+    };
+
+    // ---- Закрепить ----
+    const handlePinMessage = async () => {
+        if (!messageMenu) return;
+        const msg = messageMenu.message;
+        setMessageMenu(null);
+
+        const willUnpin = !!msg.pinned;
+
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id === msg.id
+                    ? { ...m, pinned: !willUnpin }
+                    : { ...m, pinned: false }
+            )
+        );
+
+        setPinnedMessage((prev) => (prev?.id === msg.id ? null : { ...msg, pinned: true }));
+
+        if (!activeId) return;
+        try {
+            await fetch(
+                `/api/chat/conversations/${activeId}/messages/${msg.id}/pin`,
+                { method: 'POST', headers: authHeaders }
+            );
+        } catch (err) {
+            console.error('Ошибка закрепления:', err);
+        }
+    };
+
+    // ---- Вперёд ----
+    const handleForwardMessage = () => {
+        if (!messageMenu) return;
+        const msg = messageMenu.message;
+        setMessageMenu(null);
+        alert('Пересылка сообщения — в разработке');
+        console.log('Forward:', msg);
+    };
+
+    // ---- Копировать ----
+    const handleCopyMessage = async () => {
+        if (!messageMenu) return;
+        const msg = messageMenu.message;
+        const text = msg.text || '';
+        setMessageMenu(null);
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+        setCopyToast('Скопировано');
+        setTimeout(() => setCopyToast(''), 1500);
+    };
+
+    // ---- Выбирать ----
+    const handleSelectMessage = () => {
+        if (!messageMenu) return;
+        const msg = messageMenu.message;
+        setMessageMenu(null);
+        setSelectionMode(true);
+        setSelectedIds(new Set(msg?.id != null ? [msg.id] : []));
+    };
+
+    // ---- Удалить ----
+    const handleDeleteMessage = async () => {
+        if (!messageMenu) return;
+        const msg = messageMenu.message;
+        setMessageMenu(null);
+
+        if (!msg) return;
+
+        setMessages((prev) => prev.filter((m) => m.id !== msg.id));
+
+        setConversations((prev) =>
+            prev.map((c) => {
+                if (c.id !== activeId) return c;
+                const remaining = messages.filter((m) => m.id !== msg.id);
+                const last = remaining[remaining.length - 1];
+                return {
+                    ...c,
+                    last_message: last
+                        ? (last.text ||
+                        (last.type === 'image' ? '📷 Фото' : '📎 Файл'))
+                        : '',
+                    last_message_at: last?.created_at || null,
+                };
+            })
+        );
+
+        if (!activeId) return;
+        try {
+            const res = await fetch(
+                `/api/chat/conversations/${activeId}/messages/${msg.id}`,
+                { method: 'DELETE', headers: authHeaders }
+            );
+            if (!res.ok) {
+                console.warn(
+                    '[chat] server delete failed:',
+                    res.status,
+                    await res.text().catch(() => '')
+                );
+            }
+        } catch (err) {
+            console.warn('[chat] delete request error:', err);
+        }
+    };
+
+    // ================== Режим выбора ==================
+    const enterSelectionMode = (firstId) => {
+        setSelectionMode(true);
+        setSelectedIds(firstId != null ? new Set([firstId]) : new Set());
+    };
+
+    const exitSelectionMode = () => {
+        setSelectionMode(false);
+        setSelectedIds(new Set());
+    };
+
+    const toggleSelectMessage = (id) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const isMessageSelected = (id) => selectedIds.has(id);
+
+    const selectedMessages = useMemo(
+        () => messages.filter((m) => selectedIds.has(m.id)),
+        [messages, selectedIds]
+    );
+
+    const selectAllMessages = () => {
+        setSelectedIds(new Set(messages.map((m) => m.id)));
+    };
+
+    const handleSelectionReply = () => {
+        if (selectedMessages.length !== 1) return;
+        setReplyTo(selectedMessages[0]);
+        setEditingMessage(null);
+        exitSelectionMode();
+        setTimeout(() => inputRef.current?.focus(), 0);
+    };
+
+    const handleSelectionCopy = async () => {
+        const text = selectedMessages
+            .map((m) => m.text || '')
+            .filter(Boolean)
+            .join('\n');
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+        setCopyToast('Скопировано');
+        setTimeout(() => setCopyToast(''), 1500);
+        exitSelectionMode();
+    };
+
+    const handleSelectionForward = () => {
+        if (selectedMessages.length === 0) return;
+        alert(
+            `Пересылка ${selectedMessages.length} сообщ. — в разработке.`
+        );
+        exitSelectionMode();
+    };
+
+    const handleSelectionDelete = async () => {
+        if (selectedMessages.length === 0) return;
+        const ids = new Set(selectedMessages.map((m) => m.id));
+        setMessages((prev) => prev.filter((m) => !ids.has(m.id)));
+
+        setConversations((prev) =>
+            prev.map((c) => {
+                if (c.id !== activeId) return c;
+                const remaining = messages.filter((m) => !ids.has(m.id));
+                const last = remaining[remaining.length - 1];
+                return {
+                    ...c,
+                    last_message: last
+                        ? (last.text || (last.type === 'image' ? '📷 Фото' : '📎 Файл'))
+                        : '',
+                    last_message_at: last?.created_at || null,
+                };
+            })
+        );
+
+        exitSelectionMode();
+
+        if (!activeId) return;
+        for (const id of ids) {
+            try {
+                await fetch(
+                    `/api/chat/conversations/${activeId}/messages/${id}`,
+                    { method: 'DELETE', headers: authHeaders }
+                );
+            } catch (err) {
+                console.warn('[chat] bulk delete error:', err);
+            }
+        }
+    };
+
+    const handleMessageClick = (e, msg) => {
+        if (!selectionMode) return;
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSelectMessage(msg.id);
+    };
+
+    const handleRowContextMenu = (e, msg) => {
+        if (selectionMode) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSelectMessage(msg.id);
+            return;
+        }
+        openMessageMenu(e, msg);
+    };
+
+    // ================== Производные значения ==================
+    const filteredConversations = useMemo(() => {
+        return conversations.filter((c) => {
+            if (onlySubscriptions) {
+                if (c.type === 'group') return false;
+                const otherId = c.user?.id;
+                if (!otherId || !subscriptionIds.has(otherId)) return false;
+            }
+
+            if (search.trim()) {
+                const q = search.trim().toLowerCase();
+                const name =
+                    c.display_name?.toLowerCase() ||
+                    c.user?.full_name?.toLowerCase() ||
+                    c.user?.username?.toLowerCase() ||
+                    '';
+                if (!name.includes(q)) return false;
+            }
+
+            return true;
+        });
+    }, [conversations, onlySubscriptions, subscriptionIds, search]);
+
+    const chatImages = useMemo(() => {
+        const result = [];
+        for (const msg of messages) {
+            if (msg.type === 'image' && msg.file_url) {
+                result.push({
+                    id: msg.id,
+                    url: msg.file_url,
+                    spoiler: !!msg.spoiler,
+                });
+            }
+        }
+        return result;
+    }, [messages]);
+
+    const openViewer = (url) => {
+        const index = chatImages.findIndex((img) => img.url === url);
+        setViewerState({
+            images: chatImages,
+            index: index >= 0 ? index : 0,
+        });
+    };
+
+    const nextImage = useCallback(() => {
+        setViewerState((s) => {
+            if (!s) return s;
+            return { ...s, index: (s.index + 1) % s.images.length };
+        });
+    }, []);
+
+    const prevImage = useCallback(() => {
+        setViewerState((s) => {
+            if (!s) return s;
+            return { ...s, index: (s.index - 1 + s.images.length) % s.images.length };
+        });
+    }, []);
 
     const otherUser = activeConversation?.user || activeUser || null;
     const activeUserOnline = otherUser ? onlineUsers.has(otherUser.id) : false;
@@ -787,11 +1811,57 @@ export function ChatPage() {
 
     const showBack = isGroupSettingsOpen || !!settingsPage;
 
+    const orderedMessages = useMemo(() => {
+        const grouped = groupMessages(messages);
+        return [...grouped].reverse();
+    }, [messages]);
+
     return (
         <div className="chat-page">
             <div className={`chat-page-container ${activeConversation ? 'chat-page-container-open' : ''}`}>
                 {/* ============ СПИСОК ЧАТОВ ============ */}
                 <div className="chat-list">
+                    <header className="chat-list-topbar">
+                        <button
+                            type="button"
+                            className="chat-list-topbar-avatar-btn"
+                            onClick={handleOpenSidebar}
+                            aria-label="Открыть меню"
+                        >
+                            {user?.avatar ? (
+                                <img
+                                    src={user.avatar}
+                                    alt={user.username || 'Профиль'}
+                                    className="chat-list-topbar-avatar"
+                                />
+                            ) : (
+                                <span className="chat-list-topbar-avatar chat-list-topbar-avatar-fallback">
+                                    {user?.username?.[0]?.toUpperCase() || 'A'}
+                                </span>
+                            )}
+                        </button>
+
+                        <div className="chat-list-topbar-logo">
+                            <img
+                                src={isDarkTheme ? '/logoDark(1).png' : '/logo(1).jpg'}
+                                alt="Логотип"
+                            />
+                        </div>
+
+                        <button
+                            type="button"
+                            className="chat-list-topbar-notifications-btn"
+                            onClick={() => navigate('/notifications')}
+                            aria-label="Уведомления"
+                        >
+                            <img
+                                src="/menu/notifications.png"
+                                alt=""
+                                className="chat-list-topbar-notifications-icon"
+                            />
+                        </button>
+                    </header>
+
                     <div className="search_chat">
                         <input
                             type="text"
@@ -800,15 +1870,32 @@ export function ChatPage() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                        <button
+                            type="button"
+                            className={`chat-subscriptions-toggle ${onlySubscriptions ? 'is-active' : ''}`}
+                            onClick={() => setOnlySubscriptions((v) => !v)}
+                            title={
+                                onlySubscriptions
+                                    ? 'Показать все чаты'
+                                    : 'Показать только тех, на кого я подписан'
+                            }
+                            aria-pressed={onlySubscriptions}
+                        >
+                            <StarIcon filled={onlySubscriptions} />
+                        </button>
                     </div>
 
                     {loadingList && <div className="comments-state">Загрузка…</div>}
 
                     {!loadingList && filteredConversations.length === 0 && (
                         <div className="comments-state">
-                            {conversations.length === 0
-                                ? 'Пока нет диалогов'
-                                : 'Ничего не найдено'}
+                            {onlySubscriptions && loadingSubscriptions
+                                ? 'Загрузка подписок…'
+                                : conversations.length === 0
+                                    ? 'Пока нет диалогов'
+                                    : onlySubscriptions
+                                        ? 'Нет диалогов с теми, на кого вы подписаны'
+                                        : 'Ничего не найдено'}
                         </div>
                     )}
 
@@ -905,9 +1992,161 @@ export function ChatPage() {
                 </div>
 
                 {/* ============ ОКНО ЧАТА ============ */}
-                <div className="chat-window">
+                <div
+                    className={`chat-window ${dragOver ? 'chat-window-dragover' : ''}`}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                >
+                    {dragOver && (
+                        <div className="chat-drag-overlay">
+                            <div className="chat-drag-overlay-inner">
+                                <svg viewBox="0 0 24 24" width="48" height="48" fill="none"
+                                    stroke="currentColor" strokeWidth="1.5"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                                    <circle cx="8.5" cy="8.5" r="1.5" />
+                                    <path d="M21 15l-5-5L5 21" />
+                                </svg>
+                                <div>Отпустите файл, чтобы отправить</div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeConversation ? (
                         <>
+                            {/* ===== ПАНЕЛЬ ВЫБОРА ===== */}
+                            {selectionMode && (
+                                <div className="chat-selection-bar">
+                                    <button
+                                        type="button"
+                                        className="chat-selection-bar-close"
+                                        onClick={exitSelectionMode}
+                                        aria-label="Отменить выбор"
+                                    >
+                                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                                            stroke="currentColor" strokeWidth="2"
+                                            strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18" />
+                                            <line x1="6" y1="6" x2="18" y2="18" />
+                                        </svg>
+                                    </button>
+
+                                    <div className="chat-selection-bar-count">
+                                        {selectedIds.size > 0
+                                            ? `Выбрано: ${selectedIds.size}`
+                                            : 'Выберите сообщения'}
+                                    </div>
+
+                                    <div className="chat-selection-bar-actions">
+                                        <button
+                                            type="button"
+                                            className="chat-selection-bar-btn"
+                                            onClick={selectAllMessages}
+                                            title="Выбрать все"
+                                        >
+                                            Все
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="chat-selection-bar-btn"
+                                            onClick={handleSelectionReply}
+                                            disabled={selectedIds.size !== 1}
+                                            title="Ответить"
+                                        >
+                                            <ReplyIcon />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="chat-selection-bar-btn"
+                                            onClick={handleSelectionCopy}
+                                            disabled={selectedIds.size === 0}
+                                            title="Копировать"
+                                        >
+                                            <CopyIcon />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="chat-selection-bar-btn"
+                                            onClick={handleSelectionForward}
+                                            disabled={selectedIds.size === 0}
+                                            title="Переслать"
+                                        >
+                                            <ForwardIcon />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="chat-selection-bar-btn chat-selection-bar-btn-danger"
+                                            onClick={handleSelectionDelete}
+                                            disabled={selectedIds.size === 0}
+                                            title="Удалить"
+                                        >
+                                            <DeleteIcon />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ===== ПЛАШКА ЗАКРЕПЛЁННОГО СООБЩЕНИЯ ===== */}
+                            {pinnedMessage && !selectionMode && (
+                                <div
+                                    className="chat-pinned-bar"
+                                    onClick={() => scrollToMessage(pinnedMessage.id)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            scrollToMessage(pinnedMessage.id);
+                                        }
+                                    }}
+                                    title="Перейти к закреплённому"
+                                >
+                                    <span className="chat-pinned-bar-icon">
+                                        <PinIcon />
+                                    </span>
+                                    <div className="chat-pinned-bar-content">
+                                        <div className="chat-pinned-bar-label">Закреплённое сообщение</div>
+                                        <div className="chat-pinned-bar-text">
+                                            {pinnedMessage.text ||
+                                                (pinnedMessage.type === 'image'
+                                                    ? '📷 Фото'
+                                                    : pinnedMessage.type === 'file'
+                                                        ? '📎 Файл'
+                                                        : 'Сообщение')}
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="chat-pinned-bar-unpin"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            (async () => {
+                                                const id = pinnedMessage.id;
+                                                setMessages((prev) =>
+                                                    prev.map((m) =>
+                                                        m.id === id ? { ...m, pinned: false } : m
+                                                    )
+                                                );
+                                                setPinnedMessage(null);
+                                                if (!activeId) return;
+                                                try {
+                                                    await fetch(
+                                                        `/api/chat/conversations/${activeId}/messages/${id}/pin`,
+                                                        { method: 'POST', headers: authHeaders }
+                                                    );
+                                                } catch (err) {
+                                                    console.error('Ошибка открепления:', err);
+                                                }
+                                            })();
+                                        }}
+                                        aria-label="Открепить"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="chat-window-header">
                                 <button
                                     type="button"
@@ -1000,7 +2239,12 @@ export function ChatPage() {
                                 )}
                             </div>
 
-                            <div className="chat-messages">
+                            {/* ============ СООБЩЕНИЯ ============ */}
+                            <div
+                                className="chat-messages chat-messages-reverse"
+                                ref={messagesContainerRef}
+                                onScroll={handleMessagesScroll}
+                            >
                                 {loadingMessages && (
                                     <div className="comments-state">Загрузка…</div>
                                 )}
@@ -1011,44 +2255,304 @@ export function ChatPage() {
                                     </div>
                                 )}
 
-                                {!loadingMessages &&
-                                    messages.map((msg) => {
-                                        const isMe = msg.sender_id === user?.id;
-                                        const showSender = isGroup && !isMe && msg.sender_name;
-                                        const senderUsername =
-                                            msg.sender_username || msg.username || '';
+                                {!loadingMessages && orderedMessages.map((item) => {
+                                    // === АЛЬБОМ ===
+                                    if (item.kind === 'album') {
+                                        const isMe = item.sender_id === user?.id;
+                                        const showSender = isGroup && !isMe && item.sender_name;
+                                        const senderUsername = item.sender_username || '';
+                                        const count = item.images.length;
+                                        const firstImg = item.images[0];
+                                        const gridClass =
+                                            count === 2 ? 'chat-album-grid chat-album-grid-2'
+                                            : count === 3 ? 'chat-album-grid chat-album-grid-3'
+                                            : 'chat-album-grid chat-album-grid-many';
+
+                                        const isSelected = isMessageSelected(firstImg?.id);
+                                        const isHighlighted = highlightedId === firstImg?.id;
 
                                         return (
                                             <div
-                                                key={msg.id}
-                                                className={`chat-message ${
-                                                    isMe ? 'chat-message-me' : 'chat-message-other'
-                                                } ${showSender ? 'chat-message-group' : ''}`}
+                                                key={item.id}
+                                                data-message-id={firstImg?.id}
+                                                className={`chat-message-row ${
+                                                    isMe ? 'chat-message-row-me' : 'chat-message-row-other'
+                                                } ${selectionMode ? 'chat-message-row-selectable' : ''} ${
+                                                    isSelected ? 'chat-message-row-selected' : ''
+                                                } ${isHighlighted ? 'chat-message-row-highlighted' : ''}`}
+                                                onContextMenu={(e) => handleRowContextMenu(e, firstImg)}
+                                                onClick={(e) => handleMessageClick(e, firstImg)}
                                             >
-                                                {showSender && (
-                                                    senderUsername ? (
-                                                        <Link
-                                                            to={`/user/${senderUsername}`}
-                                                            className="chat-message-sender"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            {msg.sender_name}
-                                                        </Link>
-                                                    ) : (
-                                                        <span className="chat-message-sender is-static">
-                                                            {msg.sender_name}
-                                                        </span>
-                                                    )
+                                                {selectionMode && (
+                                                    <span className={`chat-message-checkbox ${isSelected ? 'is-checked' : ''}`}>
+                                                        {isSelected && '✓'}
+                                                    </span>
                                                 )}
-                                                <div className="chat-message-text">{msg.text}</div>
-                                                <div className="chat-message-time">
-                                                    {formatTime(msg.created_at)}
+                                                <div
+                                                    className={`chat-message chat-album ${
+                                                        isMe ? 'chat-message-me' : 'chat-message-other'
+                                                    } ${showSender ? 'chat-message-group' : ''} ${
+                                                        firstImg?.pinned ? 'chat-message-pinned' : ''
+                                                    }`}
+                                                >
+                                                    {showSender && (
+                                                        senderUsername ? (
+                                                            <Link to={`/user/${senderUsername}`} className="chat-message-sender" onClick={(e) => e.stopPropagation()}>
+                                                                {item.sender_name}
+                                                            </Link>
+                                                        ) : (
+                                                            <span className="chat-message-sender is-static">{item.sender_name}</span>
+                                                        )
+                                                    )}
+
+                                                    <div className={gridClass}>
+                                                        {item.images.slice(0, 4).map((img, idx) => (
+                                                            <div
+                                                                key={img.id}
+                                                                className={`chat-album-cell ${img.spoiler ? 'is-spoiler' : ''}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (selectionMode) {
+                                                                        toggleSelectMessage(firstImg?.id);
+                                                                        return;
+                                                                    }
+                                                                    openViewer(img.url);
+                                                                }}
+                                                            >
+                                                                <img src={img.url} alt="" loading="lazy" />
+                                                                {idx === 3 && count > 4 && (
+                                                                    <span className="chat-album-more">+{count - 4}</span>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    {firstImg?.text && (
+                                                        <div className="chat-message-text">{firstImg.text}</div>
+                                                    )}
+
+                                                    <div className="chat-message-time">
+                                                        {firstImg?.pinned && (
+                                                            <svg className="chat-message-pin-icon" viewBox="0 0 24 24" width="11" height="11" fill="currentColor">
+                                                                <path d="M16 3a1 1 0 0 0-1 1v.5l-3.5 3.5H8a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h.5L12 15v5a1 1 0 0 0 2 0v-5l3.5-3.5H18a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1h-3.5L11 5V4a1 1 0 0 0-1-1z" />
+                                                            </svg>
+                                                        )}
+                                                        {formatTime(item.created_at)}
+                                                    </div>
+
+                                                    {!selectionMode && (
+                                                        <button
+                                                            type="button"
+                                                            className="chat-message-menu-arrow"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openMessageMenu(e, firstImg);
+                                                            }}
+                                                            aria-label="Действия"
+                                                        >
+                                                            <MessageMenuArrowIcon />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         );
-                                    })}
+                                    }
+
+                                    // === ОДИНОЧНОЕ СООБЩЕНИЕ ===
+                                    const msg = item.message;
+                                    const isMe = msg.sender_id === user?.id;
+                                    const showSender = isGroup && !isMe && msg.sender_name;
+                                    const senderUsername = msg.sender_username || msg.username || '';
+                                    const isImageMsg = msg.type === 'image' && msg.file_url;
+                                    const isFileMsg = msg.type === 'file' && msg.file_url;
+
+                                    const isSelected = isMessageSelected(msg.id);
+                                    const isHighlighted = highlightedId === msg.id;
+
+                                    return (
+                                        <div
+                                            key={msg.id}
+                                            data-message-id={msg.id}
+                                            className={`chat-message-row ${
+                                                isMe ? 'chat-message-row-me' : 'chat-message-row-other'
+                                            } ${selectionMode ? 'chat-message-row-selectable' : ''} ${
+                                                isSelected ? 'chat-message-row-selected' : ''
+                                            } ${isHighlighted ? 'chat-message-row-highlighted' : ''}`}
+                                            onContextMenu={(e) => handleRowContextMenu(e, msg)}
+                                            onClick={(e) => handleMessageClick(e, msg)}
+                                        >
+                                            {selectionMode && (
+                                                <span className={`chat-message-checkbox ${isSelected ? 'is-checked' : ''}`}>
+                                                    {isSelected && '✓'}
+                                                </span>
+                                            )}
+                                            <div
+                                                className={`chat-message ${isMe ? 'chat-message-me' : 'chat-message-other'} ${
+                                                    showSender ? 'chat-message-group' : ''
+                                                } ${isImageMsg ? 'chat-message-image' : ''} ${
+                                                    msg.pinned ? 'chat-message-pinned' : ''
+                                                }`}
+                                            >
+                                                {showSender && (
+                                                    senderUsername ? (
+                                                        <Link to={`/user/${senderUsername}`} className="chat-message-sender" onClick={(e) => e.stopPropagation()}>
+                                                            {msg.sender_name}
+                                                        </Link>
+                                                    ) : (
+                                                        <span className="chat-message-sender is-static">{msg.sender_name}</span>
+                                                    )
+                                                )}
+
+                                                {msg.reply_to && (
+                                                    <div
+                                                        className="chat-message-reply"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            scrollToMessage(msg.reply_to.id);
+                                                        }}
+                                                    >
+                                                        <div className="chat-message-reply-name">
+                                                            {msg.reply_to.sender_name || 'Сообщение'}
+                                                        </div>
+                                                        <div className="chat-message-reply-text">
+                                                            {msg.reply_to.text ||
+                                                                (msg.reply_to.type === 'image'
+                                                                    ? '📷 Фото'
+                                                                    : msg.reply_to.type === 'file'
+                                                                        ? '📎 Файл'
+                                                                        : 'Сообщение')}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {isImageMsg && (
+                                                    <div className="chat-message-image-wrap">
+                                                        <img
+                                                            src={msg.file_url}
+                                                            alt="Изображение"
+                                                            className={`chat-message-image-img ${msg.spoiler ? 'is-spoiler' : ''}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (selectionMode) {
+                                                                    toggleSelectMessage(msg.id);
+                                                                    return;
+                                                                }
+                                                                openViewer(msg.file_url);
+                                                            }}
+                                                            loading="lazy"
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {isFileMsg && (
+                                                    <a
+                                                        href={msg.file_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="chat-message-file"
+                                                        download={msg.file_name}
+                                                        onClick={(e) => {
+                                                            if (selectionMode) {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                toggleSelectMessage(msg.id);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                            <polyline points="14 2 14 8 20 8" />
+                                                        </svg>
+                                                        <span>{msg.file_name || 'Файл'}</span>
+                                                    </a>
+                                                )}
+
+                                                {msg.text && <div className="chat-message-text">{msg.text}</div>}
+
+                                                <div className="chat-message-time">
+                                                    {msg.pinned && (
+                                                        <svg className="chat-message-pin-icon" viewBox="0 0 24 24" width="11" height="11" fill="currentColor">
+                                                            <path d="M16 3a1 1 0 0 0-1 1v.5l-3.5 3.5H8a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h.5L12 15v5a1 1 0 0 0 2 0v-5l3.5-3.5H18a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1h-3.5L11 5V4a1 1 0 0 0-1-1z" />
+                                                        </svg>
+                                                    )}
+                                                    {msg.edited && <span className="chat-message-edited">изм.</span>}
+                                                    {formatTime(msg.created_at)}
+                                                </div>
+
+                                                {!selectionMode && (
+                                                    <button
+                                                        type="button"
+                                                        className="chat-message-menu-arrow"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openMessageMenu(e, msg);
+                                                        }}
+                                                        aria-label="Действия"
+                                                    >
+                                                        <MessageMenuArrowIcon />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                                 <div ref={messagesEndRef} />
                             </div>
+
+                            {showScrollDown && (
+                                <button
+                                    type="button"
+                                    className="chat-scroll-down-btn"
+                                    onClick={() => scrollToBottom('smooth')}
+                                    aria-label="Вниз"
+                                >
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+                                        stroke="currentColor" strokeWidth="2.2"
+                                        strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="6 9 12 15 18 9" />
+                                    </svg>
+                                </button>
+                            )}
+
+                            {replyTo && (
+                                <div className="chat-reply-bar">
+                                    <div className="chat-reply-bar-content">
+                                        <div className="chat-reply-bar-name">
+                                            {replyTo.sender_name || 'Сообщение'}
+                                        </div>
+                                        <div className="chat-reply-bar-text">
+                                            {replyTo.text || (replyTo.type === 'image' ? '📷 Фото' : '📎 Файл')}
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="chat-reply-bar-close"
+                                        onClick={cancelReply}
+                                        aria-label="Отменить ответ"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            )}
+
+                            {editingMessage && (
+                                <div className="chat-edit-bar">
+                                    <div className="chat-edit-bar-content">
+                                        <div className="chat-edit-bar-name">Редактирование</div>
+                                        <div className="chat-edit-bar-text">
+                                            {editingMessage.text}
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="chat-reply-bar-close"
+                                        onClick={cancelEdit}
+                                        aria-label="Отменить редактирование"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            )}
 
                             <form className="chat-input-form" onSubmit={handleSendMessage}>
                                 <button
@@ -1056,6 +2560,7 @@ export function ChatPage() {
                                     className="chat-input-icon-btn"
                                     onClick={() => fileInputRef.current?.click()}
                                     title="Прикрепить файл"
+                                    disabled={uploading || !!editingMessage}
                                 >
                                     <svg viewBox="0 0 24 24" width="22" height="22"
                                         fill="none" stroke="currentColor" strokeWidth="1.9"
@@ -1067,6 +2572,7 @@ export function ChatPage() {
                                     type="file"
                                     ref={fileInputRef}
                                     style={{ display: 'none' }}
+                                    accept="image/*,application/pdf,.doc,.docx,.txt,.zip,.rar"
                                     onChange={handleFilePick}
                                 />
 
@@ -1075,6 +2581,7 @@ export function ChatPage() {
                                     className="chat-input-icon-btn"
                                     onClick={() => setEmojiOpen((v) => !v)}
                                     title="Эмодзи"
+                                    disabled={uploading || !!editingMessage}
                                 >
                                     <svg viewBox="0 0 24 24" width="22" height="22"
                                         fill="none" stroke="currentColor" strokeWidth="1.9"
@@ -1103,16 +2610,24 @@ export function ChatPage() {
 
                                 <input
                                     type="text"
+                                    ref={inputRef}
                                     className="chat-input"
-                                    placeholder="Введите сообщение..."
+                                    placeholder={
+                                        uploading
+                                            ? 'Загрузка…'
+                                            : editingMessage
+                                                ? 'Редактирование сообщения...'
+                                                : 'Введите сообщение...'
+                                    }
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     onFocus={() => setEmojiOpen(false)}
+                                    disabled={uploading}
                                 />
                                 <button
                                     type="submit"
                                     className="chat-send-btn"
-                                    disabled={!newMessage.trim()}
+                                    disabled={!newMessage.trim() || uploading}
                                 >
                                     <svg viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
@@ -1443,7 +2958,6 @@ export function ChatPage() {
                                 )}
                             </div>
 
-                            {/* ============ ТЕЛО ПАНЕЛИ ============ */}
                             <div className="chat-info-body">
                                 {isGroupSettingsOpen ? (
                                     <div className="chat-info-settings">
@@ -2137,19 +3651,36 @@ export function ChatPage() {
                                         )}
 
                                         {infoTab === 'media' && (
-                                            <EmptyState
-                                                icon={
-                                                    <svg viewBox="0 0 24 24" width="44" height="44" fill="none"
-                                                        stroke="currentColor" strokeWidth="1.5"
-                                                        strokeLinecap="round" strokeLinejoin="round">
-                                                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                                                        <circle cx="8.5" cy="8.5" r="1.5" />
-                                                        <path d="M21 15l-5-5L5 21" />
-                                                    </svg>
-                                                }
-                                                title="Пока нет медиа"
-                                                hint="Фото и видео, отправленные в этом чате, появятся здесь"
-                                            />
+                                            <>
+                                                {chatImages.length === 0 ? (
+                                                    <EmptyState
+                                                        icon={
+                                                            <svg viewBox="0 0 24 24" width="44" height="44" fill="none"
+                                                                stroke="currentColor" strokeWidth="1.5"
+                                                                strokeLinecap="round" strokeLinejoin="round">
+                                                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                                                <path d="M21 15l-5-5L5 21" />
+                                                            </svg>
+                                                        }
+                                                        title="Пока нет медиа"
+                                                        hint="Фото и видео, отправленные в этом чате, появятся здесь"
+                                                    />
+                                                ) : (
+                                                    <div className="chat-info-media-grid">
+                                                        {chatImages.map((img) => (
+                                                            <button
+                                                                key={img.id}
+                                                                type="button"
+                                                                className={`chat-info-media-cell ${img.spoiler ? 'is-spoiler' : ''}`}
+                                                                onClick={() => openViewer(img.url)}
+                                                            >
+                                                                <img src={img.url} alt="" loading="lazy" />
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
 
                                         {infoTab === 'files' && (
@@ -2290,6 +3821,345 @@ export function ChatPage() {
                     onClose={() => setIsCreateGroupOpen(false)}
                     onCreate={handleCreateGroup}
                 />
+            )}
+
+            {pendingImages.length > 0 && (
+                <div className="tg-photo-overlay">
+                    <div className="tg-photo-modal">
+                        <div className="tg-photo-topbar">
+                            <button
+                                type="button"
+                                className="tg-photo-close"
+                                onClick={handleCancelImage}
+                                aria-label="Закрыть"
+                            >
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                                    stroke="currentColor" strokeWidth="2"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+
+                            <div className="tg-photo-title">
+                                {pendingImages.length > 1
+                                    ? `${activePhotoIndex + 1} из ${pendingImages.length}`
+                                    : 'Send Photo'}
+                            </div>
+
+                            <div className="tg-photo-menu-wrap" ref={photoMenuRef}>
+                                <button
+                                    type="button"
+                                    className="tg-photo-more"
+                                    onClick={() => setPhotoMenuOpen((v) => !v)}
+                                    aria-label="Ещё"
+                                >
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                        <circle cx="12" cy="5" r="1.8" />
+                                        <circle cx="12" cy="12" r="1.8" />
+                                        <circle cx="12" cy="19" r="1.8" />
+                                    </svg>
+                                </button>
+
+                                {photoMenuOpen && (
+                                    <div className="tg-photo-menu">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPhotoMenuOpen(false);
+                                                addMoreInputRef.current?.click();
+                                            }}
+                                        >
+                                            <span className="tg-photo-menu-icon">
+                                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                                    stroke="currentColor" strokeWidth="1.8"
+                                                    strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M12 5v14M5 12h14" />
+                                                </svg>
+                                            </span>
+                                            Добавить
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSendAsFile(true);
+                                                setPhotoMenuOpen(false);
+                                                setTimeout(() => handleSendImage(), 0);
+                                            }}
+                                        >
+                                            <span className="tg-photo-menu-icon">
+                                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                                    stroke="currentColor" strokeWidth="1.8"
+                                                    strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                    <polyline points="14 2 14 8 20 8" />
+                                                </svg>
+                                            </span>
+                                            Отправить как файл
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPendingSpoiler(true);
+                                                setPhotoMenuOpen(false);
+                                            }}
+                                        >
+                                            <span className="tg-photo-menu-icon">
+                                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                                    stroke="currentColor" strokeWidth="1.8"
+                                                    strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                                </svg>
+                                            </span>
+                                            Скрыть со спойлером
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <input
+                                type="file"
+                                ref={addMoreInputRef}
+                                style={{ display: 'none' }}
+                                accept="image/*"
+                                multiple
+                                onChange={handleAddMorePhotos}
+                            />
+                        </div>
+
+                        <div className="tg-photo-body">
+                            <div className="tg-photo-image-wrap">
+                                <img
+                                    src={pendingImages[activePhotoIndex]?.previewUrl}
+                                    alt="Превью"
+                                    className={`tg-photo-image ${pendingSpoiler ? 'is-spoiler' : ''}`}
+                                />
+
+                                <div className="tg-photo-image-actions">
+                                    <button
+                                        type="button"
+                                        className="tg-photo-image-btn"
+                                        onClick={() => setPendingSpoiler(true)}
+                                        title="Скрыть со спойлером"
+                                        aria-label="Скрыть со спойлером"
+                                    >
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                                            stroke="currentColor" strokeWidth="1.8"
+                                            strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                            <line x1="1" y1="1" x2="23" y2="23" />
+                                        </svg>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="tg-photo-image-btn tg-photo-image-btn-danger"
+                                        onClick={() => removePhoto(activePhotoIndex)}
+                                        title="Удалить"
+                                        aria-label="Удалить"
+                                    >
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                                            stroke="currentColor" strokeWidth="1.8"
+                                            strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="3 6 5 6 21 6" />
+                                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                            <path d="M10 11v6" />
+                                            <path d="M14 11v6" />
+                                            <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {pendingImages.length > 1 && (
+                            <div className="tg-photo-thumbs">
+                                {pendingImages.map((img, idx) => (
+                                    <button
+                                        key={img.previewUrl}
+                                        type="button"
+                                        className={`tg-photo-thumb ${idx === activePhotoIndex ? 'is-active' : ''}`}
+                                        onClick={() => setActivePhotoIndex(idx)}
+                                    >
+                                        <img src={img.previewUrl} alt="" />
+                                        <span
+                                            className="tg-photo-thumb-remove"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removePhoto(idx);
+                                            }}
+                                        >
+                                            ×
+                                        </span>
+                                    </button>
+                                ))}
+
+                                <button
+                                    type="button"
+                                    className="tg-photo-thumb tg-photo-thumb-add"
+                                    onClick={() => addMoreInputRef.current?.click()}
+                                    aria-label="Добавить фото"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="tg-photo-bottom">
+                            <input
+                                type="text"
+                                className="tg-photo-caption"
+                                placeholder="Add a caption..."
+                                value={pendingCaption}
+                                onChange={(e) => setPendingCaption(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleSendImage();
+                                    }
+                                }}
+                            />
+
+                            <button
+                                type="button"
+                                className="tg-photo-send"
+                                onClick={handleSendImage}
+                                disabled={uploading}
+                                aria-label="Отправить"
+                            >
+                                {uploading ? (
+                                    <span className="tg-photo-send-progress">{uploadProgress}%</span>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {viewerState && viewerState.images.length > 0 && (
+                <div
+                    className="chat-image-viewer"
+                    onClick={() => setViewerState(null)}
+                >
+                    <button
+                        type="button"
+                        className="chat-image-viewer-close"
+                        onClick={() => setViewerState(null)}
+                        aria-label="Закрыть"
+                    >
+                        ✕
+                    </button>
+
+                    {viewerState.images.length > 1 && (
+                        <>
+                            <button
+                                type="button"
+                                className="chat-image-viewer-nav chat-image-viewer-nav-prev"
+                                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                                aria-label="Предыдущее фото"
+                            >
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none"
+                                    stroke="currentColor" strokeWidth="2.2"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="15 18 9 12 15 6" />
+                                </svg>
+                            </button>
+
+                            <button
+                                type="button"
+                                className="chat-image-viewer-nav chat-image-viewer-nav-next"
+                                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                                aria-label="Следующее фото"
+                            >
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none"
+                                    stroke="currentColor" strokeWidth="2.2"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </button>
+
+                            <div className="chat-image-viewer-counter">
+                                {viewerState.index + 1} / {viewerState.images.length}
+                            </div>
+                        </>
+                    )}
+
+                    <img
+                        src={viewerState.images[viewerState.index]?.url}
+                        alt="Просмотр"
+                        className={`chat-image-viewer-img ${
+                            viewerState.images[viewerState.index]?.spoiler ? 'is-spoiler' : ''
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+
+            {messageMenu && (
+                <div
+                    ref={messageMenuRef}
+                    className="message-context-menu"
+                    style={{ top: messageMenu.y, left: messageMenu.x }}
+                    onClick={(e) => e.stopPropagation()}
+                    onContextMenu={(e) => e.preventDefault()}
+                >
+                    <button className="message-context-menu-item" onClick={handleReplyMessage}>
+                        <span className="message-context-menu-icon"><ReplyIcon /></span>
+                        <span className="message-context-menu-label">Ответить</span>
+                    </button>
+                    {messageMenu.message?.sender_id === user?.id &&
+                        messageMenu.message?.type !== 'image' &&
+                        messageMenu.message?.type !== 'file' && (
+                        <button className="message-context-menu-item" onClick={handleEditMessage}>
+                            <span className="message-context-menu-icon"><EditIcon /></span>
+                            <span className="message-context-menu-label">Редактировать</span>
+                        </button>
+                    )}
+                    {messageMenu.message?.type === 'image' && (
+                        <button className="message-context-menu-item" onClick={handleEditMessagePhoto}>
+                            <span className="message-context-menu-icon"><PhotoEditIcon /></span>
+                            <span className="message-context-menu-label">Отредактируйте это фото</span>
+                        </button>
+                    )}
+                    <button className="message-context-menu-item" onClick={handlePinMessage}>
+                        <span className="message-context-menu-icon"><PinIcon /></span>
+                        <span className="message-context-menu-label">
+                            {messageMenu.message?.pinned ? 'Открепить' : 'Закрепить'}
+                        </span>
+                    </button>
+                    <button className="message-context-menu-item" onClick={handleCopyMessage}>
+                        <span className="message-context-menu-icon"><CopyIcon /></span>
+                        <span className="message-context-menu-label">Копировать</span>
+                    </button>
+                    <button className="message-context-menu-item" onClick={handleForwardMessage}>
+                        <span className="message-context-menu-icon"><ForwardIcon /></span>
+                        <span className="message-context-menu-label">Вперёд</span>
+                    </button>
+                    <button className="message-context-menu-item" onClick={handleSelectMessage}>
+                        <span className="message-context-menu-icon"><SelectIcon /></span>
+                        <span className="message-context-menu-label">Выбрать</span>
+                    </button>
+                    <button
+                        className="message-context-menu-item message-context-menu-item-danger"
+                        onClick={handleDeleteMessage}
+                    >
+                        <span className="message-context-menu-icon"><DeleteIcon /></span>
+                        <span className="message-context-menu-label">Удалить</span>
+                    </button>
+                </div>
+            )}
+
+            {copyToast && (
+                <div className="chat-copy-toast">{copyToast}</div>
             )}
         </div>
     );

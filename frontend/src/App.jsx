@@ -350,8 +350,14 @@ const AppContent = () => {
             setPosts([]);
             return undefined;
         }
+
+        const url = activeTab === 'Следующий'
+            ? '/api/posts/?feed=following'
+            : '/api/posts/';
+
         let cancelled = false;
-        fetch('/api/posts/', {
+
+        fetch(url, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         })
             .then(async (response) => {
@@ -361,9 +367,13 @@ const AppContent = () => {
             .then((data) => {
                 if (!cancelled) setPosts(data);
             })
-            .catch((error) => console.error('Ошибка загрузки публикаций:', error));
+            .catch((error) => {
+                console.error('Ошибка загрузки публикаций:', error);
+                if (!cancelled) setPosts([]);
+            });
+
         return () => { cancelled = true; };
-    }, [user?.id]);
+    }, [user?.id, activeTab]);   // ← добавили activeTab
 
     const handleAddPost = async (newPostData) => {
         const formData = new FormData();

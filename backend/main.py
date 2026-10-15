@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.database import init_db
 from backend.realtime import manager
-from backend.routes import auth, chat, follows, posts, theme, users
+from backend.routes import auth, chat, follows, music, posts, theme, users
 
 
 @asynccontextmanager
@@ -49,6 +49,8 @@ app.include_router(theme.router)
 app.include_router(users.router)
 app.include_router(follows.router)
 app.include_router(chat.router)
+app.include_router(music.router)
+
 
 uploads_dir = Path(os.getenv("UPLOAD_DIR", "/app/uploads"))
 uploads_dir.mkdir(parents=True, exist_ok=True)

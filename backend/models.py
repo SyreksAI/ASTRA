@@ -202,10 +202,35 @@ class Message(Base):
         nullable=False,
         index=True,
     )
-    text = Column(Text, nullable=False)
+    text = Column(Text, nullable=False, default="")
+
+    # 👇 Поля для вложений
+    type = Column(String(16), nullable=True)          # "image" | "file" | None
+    file_url = Column(String(500), nullable=True)     # /uploads/chat/xxx.jpg
+    file_name = Column(String(255), nullable=True)
+    file_size = Column(Integer, nullable=True)
+    mime_type = Column(String(100), nullable=True)
+
     read_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     sender = relationship("User")
 
 
+
+
+
+class Track(Base):
+    __tablename__ = "tracks"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(200), nullable=False)
+    artist = Column(String(200), nullable=False)
+    album = Column(String(200), nullable=True)
+    duration = Column(String(20), nullable=True)
+    cover = Column(String(255), nullable=True)
+    audio_url = Column(String(500), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    author = relationship("User")
