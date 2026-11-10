@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+.expo-tmp*/
+dist/
+.env
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+android/
+ios/

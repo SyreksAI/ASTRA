@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.database import init_db
 from backend.realtime import manager
-from backend.routes import auth, chat, follows, music, posts, theme, users
+from backend.routes import auth, chat, constellations, follows, music, posts, theme, users
 
 
 @asynccontextmanager
@@ -23,16 +23,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Astra API",
+    title="Elara API",
     version="0.1.0",
-    description="API для социальной сети Astra",
+    description="API для социальной сети Elara",
     lifespan=lifespan,
 )
 
 # CORS — с credentials нельзя использовать "*"
 allowed_origins = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost,http://127.0.0.1,http://localhost:5173,http://127.0.0.1:5173",
+    "http://localhost:8080,http://127.0.0.1:8080,"
+    "http://localhost:3000,http://127.0.0.1:3000",
 ).split(",")
 
 app.add_middleware(
@@ -45,6 +46,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(posts.router)
+app.include_router(constellations.router)
 app.include_router(theme.router)
 app.include_router(users.router)
 app.include_router(follows.router)
@@ -59,9 +61,9 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 @app.get("/")
 async def root():
-    return {"message": "Astra API", "version": app.version}
+    return {"message": "Elara API", "version": app.version}
 
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "service": "Astra API"}
+    return {"status": "healthy", "service": "Elara API"}

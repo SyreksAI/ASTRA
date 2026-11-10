@@ -1,0 +1,1305 @@
+/* MateAI — layout как Claude/GPT, стиль Elara + космический фон */
+
+.app--orbit .app-center-content:has(.mateai) {
+  padding: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mateai {
+  --mate-teal: #16B8A6;
+  --mate-text: #0f1419;
+  --mate-muted: #667085;
+  --mate-line: rgba(15, 23, 42, 0.08);
+  --mate-card: rgba(255, 255, 255, 0.88);
+  --mate-list: 268px;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--mate-list) minmax(0, 1fr);
+  width: 100%;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  border-radius: 0;
+  overflow: hidden;
+  border: 1px solid var(--mate-line);
+  color: var(--mate-text);
+  isolation: isolate;
+  transition: grid-template-columns 0.2s ease;
+}
+
+.mateai--list-collapsed {
+  --mate-list: 0px;
+}
+
+.mateai--list-collapsed .mateai__list {
+  opacity: 0;
+  pointer-events: none;
+  border-right: 0;
+  overflow: hidden;
+}
+
+.mateai__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: #f5f6f8;
+}
+
+.mateai__bg-wash {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.mateai__bg-orbits {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: #6b7280;
+  opacity: 0.32;
+
+  ellipse {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.1;
+  }
+}
+
+.mateai__bg-fade {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.mateai__list,
+.mateai__workspace {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ---- chat list (ChatGPT-like) ---- */
+
+.mateai__list {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.mateai__list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 12px 8px 16px;
+}
+
+.mateai__list-head h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--mate-text);
+}
+
+.mateai__list-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mateai__icon-btn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--mate-muted);
+  cursor: pointer;
+}
+
+.mateai__icon-btn:hover,
+.mateai__icon-btn.is-active {
+  color: var(--mate-text);
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.mateai__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 12px 8px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--mate-muted);
+}
+
+.mateai__search input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--mate-text);
+}
+
+.mateai__side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 10px 10px;
+}
+
+.mateai__side-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--mate-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mateai__side-link:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.mateai__side-link-icon {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: var(--mate-text);
+  flex: 0 0 20px;
+}
+
+.mateai__side-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 10px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.22) transparent;
+}
+
+.mateai__side-scroll::-webkit-scrollbar,
+.mateai__stage::-webkit-scrollbar {
+  width: 3px;
+}
+
+.mateai__side-scroll::-webkit-scrollbar-track,
+.mateai__stage::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px 0;
+}
+
+.mateai__side-scroll::-webkit-scrollbar-thumb,
+.mateai__stage::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.22);
+  border-radius: 999px;
+}
+
+.mateai__side-scroll::-webkit-scrollbar-thumb:hover,
+.mateai__stage::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.mateai__side-scroll::-webkit-scrollbar-corner,
+.mateai__stage::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.mateai__side-section {
+  margin-top: 10px;
+}
+
+.mateai__side-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+  padding: 0 4px 0 10px;
+  margin-bottom: 2px;
+}
+
+.mateai__side-section-head h2,
+.mateai__side-section > h2 {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--mate-muted);
+}
+
+.mateai__side-section > h2 {
+  margin-bottom: 6px;
+  padding: 0 10px;
+}
+
+.mateai__side-add {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--mate-muted);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+
+.mateai__side-section-head:hover .mateai__side-add,
+.mateai__side-add:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mateai__side-add:hover {
+  color: var(--mate-text);
+  background: rgba(15, 23, 42, 0.06);
+}
+
+body.dark-theme .mateai__side-add:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mateai__side-empty {
+  margin: 0;
+  padding: 6px 10px 10px;
+  font-size: 13px;
+  color: var(--mate-muted);
+}
+
+.mateai__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mateai__row {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--mate-text);
+}
+
+.mateai__row.is-menu-open {
+  z-index: 20;
+}
+
+.mateai__row:hover,
+.mateai__row.is-active {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.mateai__row.is-active {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.mateai__row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.mateai__row-title {
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mateai__row-actions {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.mateai__row:hover .mateai__row-actions,
+.mateai__row:focus-within .mateai__row-actions,
+.mateai__row.is-menu-open .mateai__row-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mateai__row.is-menu-open .mateai__row-main {
+  padding-right: 58px;
+}
+
+.mateai__chat-menu {
+  position: fixed;
+  z-index: 80;
+  width: 232px;
+  padding: 6px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  color: var(--mate-text);
+}
+
+.mateai__chat-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mateai__chat-menu-item:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.mateai__chat-menu-item.is-danger {
+  color: #ef4444;
+}
+
+.mateai__chat-menu-item.has-caret {
+  justify-content: flex-start;
+}
+
+.mateai__chat-menu-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.mateai__chat-menu-icon {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 18px;
+  color: inherit;
+}
+
+.mateai__chat-menu-caret {
+  margin-left: auto;
+  color: var(--mate-muted);
+  flex: 0 0 14px;
+}
+
+.mateai__chat-menu-sep {
+  height: 1px;
+  margin: 5px 8px;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.mateai__row-action {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--mate-muted);
+  cursor: pointer;
+}
+
+.mateai__row-action:hover,
+.mateai__row-action.is-on {
+  color: var(--mate-text);
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.mateai__row:hover .mateai__row-main {
+  padding-right: 58px;
+}
+
+/* ---- workspace ---- */
+
+.mateai__workspace {
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+.mateai__chat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px;
+}
+
+.mateai__list-toggle {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #fff;
+  color: #3d4450;
+  cursor: pointer;
+  flex: 0 0 38px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.mateai__list-toggle:hover {
+  color: #0f1419;
+  background: #fff;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+.mateai__list-toggle svg {
+  display: block;
+}
+
+body.dark-theme .mateai__list-toggle {
+  background: #111014;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #c8ced6;
+}
+
+body.dark-theme .mateai__list-toggle:hover {
+  color: #e7e9ea;
+  background: #16141c;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.mateai__chat-head strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.mateai__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--mate-muted);
+}
+
+.mateai__status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+
+.mateai__stage {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 22px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.22) transparent;
+}
+
+.mateai__welcome {
+  width: 100%;
+  max-width: 860px;
+  margin: 12vh auto 28px;
+}
+
+.mateai__welcome h2 {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.12;
+  max-width: 18ch;
+}
+
+.mateai__welcome > p {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mate-muted);
+}
+
+.mateai__cats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.mateai__cat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 118px;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 18px;
+  background: var(--mate-card);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.mateai__cat:hover {
+  transform: translateY(-2px);
+  border-color: rgba(22, 184, 166, 0.4);
+}
+
+.mateai__cat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(22, 184, 166, 0.12);
+  color: #0f766e;
+}
+
+.mateai__cat strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.mateai__cat em {
+  font-style: normal;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--mate-muted);
+}
+
+.mateai__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mateai__quick button {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--mate-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.mateai__quick button:hover {
+  border-color: rgba(22, 184, 166, 0.45);
+  background: #fff;
+}
+
+/* bubbles */
+
+.mateai__thread {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
+.mateai__bubble-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 85%;
+}
+
+.mateai__bubble-row.is-mine {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.mateai__bubble-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(22, 184, 166, 0.14);
+  color: var(--mate-teal);
+  flex: 0 0 28px;
+}
+
+.mateai__bubble {
+  padding: 12px 14px;
+  border-radius: 18px 18px 18px 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+}
+
+.mateai__bubble--assistant {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 2px 0;
+  color: var(--mate-text);
+}
+
+.mateai__bubble--user {
+  border-radius: 18px 18px 8px 18px;
+  background: #0f1419;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+}
+
+.mateai__bubble p {
+  margin: 0 0 0.55em;
+}
+
+.mateai__bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.mateai__typing {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  height: 18px;
+}
+
+.mateai__typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mate-teal);
+  opacity: 0.35;
+  animation: mateai-dot 1.1s infinite ease-in-out;
+}
+
+.mateai__typing i:nth-child(2) { animation-delay: 0.15s; }
+.mateai__typing i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes mateai-dot {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* composer */
+
+.mateai__composer-wrap {
+  flex-shrink: 0;
+  padding: 8px 22px max(10px, env(safe-area-inset-bottom, 0px));
+}
+
+.mateai__composer-shell {
+  position: relative;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.mateai__composer {
+  position: relative;
+  z-index: 2;
+  padding: 12px 12px 10px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(14px);
+}
+
+.mateai__composer textarea {
+  width: 100%;
+  min-height: 44px;
+  max-height: 160px;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mate-text);
+  padding: 4px 6px 8px;
+}
+
+.mateai__composer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mateai__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mateai__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mate-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.mateai__tool:hover {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--mate-text);
+}
+
+.mateai__tool--plus {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.05);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), background 0.18s ease, color 0.18s ease;
+}
+
+.mateai__tool--plus svg {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mateai__tool--plus.is-open {
+  background: #0f1419;
+  color: #fff;
+}
+
+.mateai__tool--plus.is-open svg {
+  transform: rotate(45deg);
+}
+
+.mateai__active-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px 0 10px;
+  border-radius: 999px;
+  background: rgba(22, 184, 166, 0.12);
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mateai__active-tool svg {
+  width: 14px;
+  height: 14px;
+}
+
+.mateai__active-tool button {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* GPT-like popover над композером */
+.mateai__tools-pop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 10px);
+  z-index: 5;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 18px 48px rgba(15, 23, 42, 0.12),
+    0 2px 8px rgba(15, 23, 42, 0.04);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  transform-origin: 24px bottom;
+  animation: mateai-tools-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes mateai-tools-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mateai__tools-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 72px;
+  padding: 10px 6px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #475467;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.mateai__tools-item:hover {
+  background: rgba(22, 184, 166, 0.1);
+  color: #0f766e;
+  transform: translateY(-1px);
+}
+
+.mateai__tools-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: inherit;
+}
+
+.mateai__tools-item-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.mateai__composer-end {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.mateai__model-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--mate-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.mateai__model-btn svg {
+  color: var(--mate-muted);
+  transition: transform 0.18s ease;
+}
+
+.mateai__model-btn:hover,
+.mateai__model-btn.is-open {
+  border-color: rgba(22, 184, 166, 0.4);
+  background: #fff;
+}
+
+.mateai__model-btn.is-open svg {
+  transform: rotate(180deg);
+  color: #0f766e;
+}
+
+.mateai__model-pop {
+  position: absolute;
+  right: 48px;
+  bottom: calc(100% + 10px);
+  z-index: 6;
+  width: 196px;
+  padding: 6px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(14px);
+  animation: mateai-tools-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: 90% bottom;
+}
+
+.mateai__model-auto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--mate-text);
+}
+
+.mateai__switch {
+  position: relative;
+  width: 40px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  transition: background 0.18s ease;
+  flex: 0 0 40px;
+}
+
+.mateai__switch i {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+  transition: transform 0.18s ease;
+}
+
+.mateai__switch.is-on {
+  background: #16B8A6;
+}
+
+.mateai__switch.is-on i {
+  transform: translateX(16px);
+}
+
+.mateai__model-sep {
+  height: 1px;
+  margin: 4px 8px 6px;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.mateai__model-option {
+  width: 100%;
+  display: block;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mate-text);
+}
+
+.mateai__model-option:hover,
+.mateai__model-option.is-active {
+  background: rgba(22, 184, 166, 0.1);
+  color: #0f766e;
+}
+
+.mateai__model-option.is-dimmed {
+  opacity: 0.45;
+}
+
+.mateai__send {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #0f1419;
+  color: #fff;
+  cursor: pointer;
+  flex: 0 0 40px;
+}
+
+.mateai__send:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* dark */
+
+body.dark-theme .mateai {
+  --mate-text: #e7e9ea;
+  --mate-muted: #8b98a5;
+  --mate-line: rgba(255, 255, 255, 0.08);
+  --mate-card: rgba(22, 18, 28, 0.82);
+  border-color: var(--mate-line);
+}
+
+body.dark-theme .mateai__bg {
+  background: #0a0a0a;
+}
+
+body.dark-theme .mateai__workspace {
+  background: transparent;
+}
+
+body.dark-theme .mateai__bg-wash,
+body.dark-theme .mateai__bg-fade {
+  background: transparent;
+}
+
+body.dark-theme .mateai__bg-orbits {
+  color: #9aa3b2;
+  opacity: 0.2;
+}
+
+body.dark-theme .mateai__side-scroll,
+body.dark-theme .mateai__stage {
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+body.dark-theme .mateai__side-scroll::-webkit-scrollbar-thumb,
+body.dark-theme .mateai__stage::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+body.dark-theme .mateai__side-scroll::-webkit-scrollbar-thumb:hover,
+body.dark-theme .mateai__stage::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+body.dark-theme .mateai__list {
+  background: #000000;
+  border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+body.dark-theme .mateai__icon-btn:hover,
+body.dark-theme .mateai__icon-btn.is-active,
+body.dark-theme .mateai__side-link:hover,
+body.dark-theme .mateai__row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+body.dark-theme .mateai__row.is-active {
+  background: #212121;
+}
+
+body.dark-theme .mateai__row-action:hover,
+body.dark-theme .mateai__row-action.is-on {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e7e9ea;
+}
+
+body.dark-theme .mateai__chat-menu {
+  background: rgba(36, 36, 36, 0.42);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
+  color: #e7e9ea;
+}
+
+body.dark-theme .mateai__chat-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-theme .mateai__chat-menu-item.is-danger {
+  color: #f87171;
+}
+
+body.dark-theme .mateai__chat-menu-sep {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .mateai__search {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--mate-muted);
+}
+
+body.dark-theme .mateai__quick button,
+body.dark-theme .mateai__composer {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--mate-text);
+}
+
+body.dark-theme .mateai__bubble--assistant {
+  background: transparent;
+  border: none;
+  color: var(--mate-text);
+}
+
+body.dark-theme .mateai__bubble--user {
+  background: #a21ad8;
+  border-color: rgba(162, 26, 216, 0.35);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(162, 26, 216, 0.32);
+}
+
+body.dark-theme .mateai__send {
+  background: #e7e9ea;
+  color: #0f1419;
+}
+
+body.dark-theme .mateai__model-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--mate-text);
+}
+
+body.dark-theme .mateai__model-btn:hover,
+body.dark-theme .mateai__model-btn.is-open {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-theme .mateai__model-pop {
+  background: rgba(22, 18, 28, 0.97);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-theme .mateai__model-option:hover,
+body.dark-theme .mateai__model-option.is-active {
+  background: rgba(22, 184, 166, 0.14);
+}
+
+body.dark-theme .mateai__switch {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+body.dark-theme .mateai__model-sep {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-theme .mateai__tool--plus.is-open {
+  background: #e7e9ea;
+  color: #0f1419;
+}
+
+body.dark-theme .mateai__tools-pop {
+  background: rgba(22, 18, 28, 0.96);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+}
+
+body.dark-theme .mateai__tools-item {
+  color: #b0bac5;
+}
+
+body.dark-theme .mateai__tools-item:hover {
+  background: rgba(22, 184, 166, 0.14);
+  color: #5eead4;
+}
+
+@media (max-width: 640px) {
+  .mateai__tools-pop {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .mateai__tools-item {
+    flex: 0 0 calc(33.333% - 4px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .mateai__cats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .mateai {
+    grid-template-columns: 1fr;
+    height: 100%;
+    border-radius: 0;
+    border: 0;
+  }
+
+  .mateai__list {
+    display: none;
+  }
+
+  .mateai__cats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mateai__tool span {
+    display: none;
+  }
+
+  .mateai__welcome h2 {
+    max-width: none;
+  }
+}

@@ -16,6 +16,8 @@ try:
 except ImportError:  # Python 3.13+ / Windows development
     crypt = None
 
+from sqlalchemy.orm.attributes import flag_modified
+
 from backend.database import get_db
 from backend.models import User
 
@@ -43,10 +45,17 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class ProfileLinks(BaseModel):
+    github: str = Field(default="", max_length=200)
+    website: str = Field(default="", max_length=200)
+    telegram: str = Field(default="", max_length=200)
+
+
 class ProfileUpdateRequest(BaseModel):
     username: str = Field(min_length=1, max_length=50)
     full_name: str = Field(default="", max_length=100)
     bio: str = Field(default="", max_length=500)
+    links: ProfileLinks | None = None
 
 
 class TokenResponse(BaseModel):
@@ -218,6 +227,17 @@ def update_me(
     current_user.username = username
     current_user.full_name = request.full_name.strip() or username
     current_user.bio = request.bio.strip()
+
+    if request.links is not None:
+        prefs = dict(current_user.preferences or {})
+        prefs["links"] = {
+            "github": request.links.github.strip()[:200],
+            "website": request.links.website.strip()[:200],
+            "telegram": request.links.telegram.strip()[:200],
+        }
+        current_user.preferences = prefs
+        flag_modified(current_user, "preferences")
+
     db.commit()
     db.refresh(current_user)
 

@@ -1,6 +1,6 @@
 // src/components/pages/ExplorePage.jsx
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ForYou } from '../explore/ForYou';
 import { Trending } from '../explore/Trending';
@@ -39,10 +39,14 @@ function useIsDarkTheme() {
 
 export function ExplorePage({ suggestedUsers }) {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user } = useAuth();
     const isDarkTheme = useIsDarkTheme();
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const constellationSlug = searchParams.get('constellation') || '';
+    const tabParam = searchParams.get('tab') || '';
+
+    const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
     const [activeCategory, setActiveCategory] = useState('Для тебя');
     const [filter, setFilter] = useState('all');
 
@@ -53,6 +57,12 @@ export function ExplorePage({ suggestedUsers }) {
 
     const [history, setHistory] = useState(() => getSearchHistory());
 
+    const [constellation, setConstellation] = useState(null);
+    const [constellationPosts, setConstellationPosts] = useState([]);
+    const [constellationLoading, setConstellationLoading] = useState(false);
+    const [joinBusy, setJoinBusy] = useState(false);
+    const [allConstellations, setAllConstellations] = useState([]);
+
     const categories = [
         { id: 'Для тебя', label: 'Для тебя' },
         { id: 'В тренде', label: 'В тренде' },
@@ -60,6 +70,91 @@ export function ExplorePage({ suggestedUsers }) {
         { id: 'Спорт', label: 'Спорт' },
         { id: 'Видео', label: 'Видео' },
     ];
+
+    useEffect(() => {
+        if (tabParam === 'constellations') {
+            navigate('/constellations', { replace: true });
+        }
+    }, [tabParam, navigate]);
+
+    useEffect(() => {
+        if (tabParam === 'search' && !searchQuery) {
+            // keep empty search focused via header input
+        }
+    }, [tabParam, searchQuery]);
+
+    useEffect(() => {
+        if (!constellationSlug && tabParam !== 'constellations') return undefined;
+
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        let cancelled = false;
+
+        if (tabParam === 'constellations' && !constellationSlug) {
+            fetch('/api/constellations/', { headers })
+                .then((r) => (r.ok ? r.json() : []))
+                .then((data) => {
+                    if (!cancelled) setAllConstellations(Array.isArray(data) ? data : []);
+                })
+                .catch(() => {
+                    if (!cancelled) setAllConstellations([]);
+                });
+            return () => { cancelled = true; };
+        }
+
+        setConstellationLoading(true);
+        Promise.all([
+            fetch(`/api/constellations/${encodeURIComponent(constellationSlug)}`, { headers })
+                .then((r) => (r.ok ? r.json() : null)),
+            fetch(`/api/constellations/${encodeURIComponent(constellationSlug)}/posts`, { headers })
+                .then((r) => (r.ok ? r.json() : [])),
+        ])
+            .then(([meta, posts]) => {
+                if (cancelled) return;
+                setConstellation(meta);
+                setConstellationPosts(Array.isArray(posts) ? posts : []);
+            })
+            .catch(() => {
+                if (cancelled) return;
+                setConstellation(null);
+                setConstellationPosts([]);
+            })
+            .finally(() => {
+                if (!cancelled) setConstellationLoading(false);
+            });
+
+        return () => { cancelled = true; };
+    }, [constellationSlug, tabParam]);
+
+    const handleConstellationJoin = async () => {
+        if (!constellation || joinBusy) return;
+        setJoinBusy(true);
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        try {
+            const method = constellation.joined ? 'DELETE' : 'POST';
+            const res = await fetch(
+                `/api/constellations/${encodeURIComponent(constellation.id)}/join`,
+                { method, headers }
+            );
+            const data = await res.json().catch(() => null);
+            if (!res.ok) throw new Error('join failed');
+            setConstellation(data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setJoinBusy(false);
+        }
+    };
+
+    const clearConstellation = () => {
+        const next = new URLSearchParams(searchParams);
+        next.delete('constellation');
+        next.delete('tab');
+        setSearchParams(next);
+        setConstellation(null);
+        setConstellationPosts([]);
+    };
 
     const filters = [
         { id: 'all', label: 'Всё' },
@@ -187,47 +282,36 @@ export function ExplorePage({ suggestedUsers }) {
     const isSearching = searchQuery.trim().length > 0;
     const totalResults =
         userResults.length + postResults.length + trackResults.length;
+    const showConstellation = Boolean(constellationSlug);
+    const showConstellationList = tabParam === 'constellations' && !constellationSlug;
 
     return (
         <div className="explore-page">
-            <header className="chat-list-topbar">
+            <header className="home-mobile-bar">
                 <button
                     type="button"
-                    className="chat-list-topbar-avatar-btn"
+                    className="home-mobile-bar__avatar"
                     onClick={handleOpenSidebar}
                     aria-label="Открыть меню"
                 >
                     {user?.avatar ? (
-                        <img
-                            src={user.avatar}
-                            alt={user.username || 'Профиль'}
-                            className="chat-list-topbar-avatar"
-                        />
+                        <img src={user.avatar} alt="" />
                     ) : (
-                        <span className="chat-list-topbar-avatar chat-list-topbar-avatar-fallback">
-                            {user?.username?.[0]?.toUpperCase() || 'A'}
-                        </span>
+                        <span>{user?.username?.[0]?.toUpperCase() || 'A'}</span>
                     )}
                 </button>
-
-                <div className="chat-list-topbar-logo">
-                    <img
-                        src={isDarkTheme ? '/logoDark(1).png' : '/logo(1).jpg'}
-                        alt="Логотип"
-                    />
-                </div>
-
+                <img
+                    className="home-mobile-bar__logo"
+                    src={isDarkTheme ? '/elara-logo-dark.png' : '/elara-logo.png'}
+                    alt="Elara"
+                />
                 <button
                     type="button"
-                    className="chat-list-topbar-notifications-btn"
+                    className="home-mobile-bar__notify"
                     onClick={() => navigate('/notifications')}
                     aria-label="Уведомления"
                 >
-                    <img
-                        src="/menu/notifications.png"
-                        alt=""
-                        className="chat-list-topbar-notifications-icon"
-                    />
+                    <img src="/menu/notifications.png" alt="" />
                 </button>
             </header>
 
@@ -258,7 +342,7 @@ export function ExplorePage({ suggestedUsers }) {
                     </div>
                 )}
 
-                {!isSearching && (
+                {!isSearching && !showConstellation && !showConstellationList && (
                     <div className="explore-page-categories">
                         {categories.map((category) => (
                             <p
@@ -399,7 +483,7 @@ export function ExplorePage({ suggestedUsers }) {
                 </div>
             )}
 
-            {!isSearching && history.length > 0 && (
+            {!isSearching && !showConstellation && !showConstellationList && history.length > 0 && (
                 <div className="explore-page-history">
                     <div className="explore-page-history-header">
                         <span>Недавние запросы</span>
@@ -424,7 +508,100 @@ export function ExplorePage({ suggestedUsers }) {
                 </div>
             )}
 
-            {!isSearching && (
+            {!isSearching && showConstellation && (
+                <div className="explore-constellation">
+                    <button
+                        type="button"
+                        className="explore-constellation__back"
+                        onClick={clearConstellation}
+                    >
+                        ← Назад
+                    </button>
+
+                    {constellationLoading && (
+                        <div className="explore-page-state">Загрузка созвездия…</div>
+                    )}
+
+                    {!constellationLoading && !constellation && (
+                        <div className="explore-page-state">Созвездие не найдено</div>
+                    )}
+
+                    {!constellationLoading && constellation && (
+                        <>
+                            <div className="explore-constellation__head">
+                                <div className="explore-constellation__copy">
+                                    <h2 className="explore-constellation__title">
+                                        {constellation.label}
+                                    </h2>
+                                    {constellation.description && (
+                                        <p className="explore-constellation__desc">
+                                            {constellation.description}
+                                        </p>
+                                    )}
+                                    <p className="explore-constellation__meta">
+                                        {constellation.members_count || 0} участников ·{' '}
+                                        {constellation.posts_count || 0} постов
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className={`explore-constellation__join${
+                                        constellation.joined ? ' is-joined' : ''
+                                    }`}
+                                    onClick={handleConstellationJoin}
+                                    disabled={joinBusy}
+                                >
+                                    {joinBusy
+                                        ? '…'
+                                        : constellation.joined
+                                          ? 'Выйти'
+                                          : 'Войти'}
+                                </button>
+                            </div>
+
+                            <div className="explore-constellation__feed">
+                                {constellationPosts.length === 0 ? (
+                                    <div className="explore-page-state">
+                                        Пока тихо. Опубликуй первый пост в этом Созвездии.
+                                    </div>
+                                ) : (
+                                    constellationPosts.map((p) => (
+                                        <PostCard key={p.id} post={p} />
+                                    ))
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {!isSearching && showConstellationList && (
+                <div className="explore-constellation-list">
+                    <h2 className="explore-constellation-list__title">Все Созвездия</h2>
+                    <div className="explore-constellation-list__grid">
+                        {allConstellations.map((c) => (
+                            <button
+                                key={c.id}
+                                type="button"
+                                className="explore-constellation-list__card"
+                                onClick={() =>
+                                    setSearchParams({ constellation: c.id })
+                                }
+                            >
+                                <span className="explore-constellation-list__mark">
+                                    {(c.label || c.id).slice(0, 1)}
+                                </span>
+                                <span className="explore-constellation-list__name">{c.label}</span>
+                                <span className="explore-constellation-list__meta">
+                                    {c.members_count || 0} · {c.posts_count || 0} постов
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {!isSearching && !showConstellation && !showConstellationList && (
                 <div className="explore-page-content">
                     <div className="explore-page-main">
                         {renderContentSearch()}

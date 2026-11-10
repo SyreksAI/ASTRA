@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rexon — logo intro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #000;
+    }
+    .rexon-intro {
+      width: min(720px, 92vw);
+      aspect-ratio: 720 / 160;
+    }
+    .rexon-intro svg { width: 100%; height: 100%; display: block; }
+
+    .orbit-ring {
+      stroke-dasharray: 320;
+      stroke-dashoffset: 320;
+      animation: draw-ring 0.85s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+    }
+    @keyframes draw-ring {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .orbit-ball {
+      transform-box: fill-box;
+      transform-origin: center;
+      opacity: 0;
+      transform: scale(0);
+      animation:
+        ball-in 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) 0.55s forwards,
+        ball-teal 0.35s ease 1.55s forwards;
+    }
+    @keyframes ball-in {
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes ball-teal {
+      to { fill: #16B8A6; }
+    }
+
+    .letter {
+      opacity: 0;
+      transform: translateY(14px);
+      animation: letter-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .letter-r { animation-delay: 0.75s; }
+    .letter-e { animation-delay: 0.88s; }
+    .letter-x { animation-delay: 1.01s; }
+    .x-teal-stroke { animation: x-teal 0.35s ease 1.55s forwards; }
+    .letter-o { animation-delay: 1.14s; }
+    .letter-n { animation-delay: 1.27s; }
+
+    @keyframes letter-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes x-teal {
+      to { stroke: #16B8A6; }
+    }
+
+    .replay {
+      position: fixed;
+      bottom: 24px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      color: #888;
+      background: #111;
+      border: 1px solid #333;
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .replay:hover { color: #fff; border-color: #555; }
+  </style>
+</head>
+<body>
+  <div class="rexon-intro" id="intro"></div>
+  <button type="button" class="replay" id="replay">Повторить</button>
+
+  <template id="rexon-svg">
+    <svg viewBox="0 0 720 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="720" height="160" fill="#000000"/>
+      <g transform="translate(52 80)">
+        <ellipse class="orbit-ring" cx="0" cy="0" rx="50" ry="21" stroke="#FFFFFF" stroke-width="5.5" transform="rotate(-28)"/>
+        <circle class="orbit-ball" cx="33" cy="-27" r="8.5" fill="#C5C5C5"/>
+      </g>
+      <text class="letter letter-r" x="138" y="102" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="3" fill="#C5C5C5">R</text>
+      <text class="letter letter-e" x="198" y="102" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="3" fill="#C5C5C5">E</text>
+      <g class="letter letter-x" transform="translate(262 102)">
+        <path class="x-teal-stroke" d="M-2 -32 L34 32" stroke="#C5C5C5" stroke-width="9" stroke-linecap="round"/>
+        <path d="M-2 32 L34 -32" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"/>
+      </g>
+      <text class="letter letter-o" x="312" y="102" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="3" fill="#C5C5C5">O</text>
+      <text class="letter letter-n" x="382" y="102" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="3" fill="#C5C5C5">N</text>
+    </svg>
+  </template>
+
+  <script>
+    const intro = document.getElementById('intro');
+    const tpl = document.getElementById('rexon-svg');
+    function play() {
+      intro.innerHTML = '';
+      intro.appendChild(tpl.content.cloneNode(true));
+    }
+    document.getElementById('replay').addEventListener('click', play);
+    play();
+  </script>
+</body>
+</html>

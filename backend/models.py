@@ -32,6 +32,38 @@ class User(Base):
     last_seen_at = Column(DateTime, default=datetime.utcnow, nullable=True)
 
 
+class Constellation(Base):
+    __tablename__ = "constellations"
+
+    id = Column(Integer, primary_key=True)
+    slug = Column(String(40), unique=True, nullable=False, index=True)
+    label = Column(String(80), nullable=False)
+    description = Column(String(300), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class ConstellationMember(Base):
+    __tablename__ = "constellation_members"
+    __table_args__ = (
+        UniqueConstraint("constellation_id", "user_id", name="uq_constellation_member"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    constellation_id = Column(
+        Integer,
+        ForeignKey("constellations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    joined_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
 class Post(Base):
     __tablename__ = "posts"
 
@@ -44,9 +76,17 @@ class Post(Base):
     )
     content = Column(Text, nullable=False, default="")
     image = Column(String(255), nullable=True)
+    media = Column(JSON, nullable=True)
+    constellation_id = Column(
+        Integer,
+        ForeignKey("constellations.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     author = relationship("User")
+    constellation = relationship("Constellation")
     comments = relationship(
         "Comment",
         back_populates="post",

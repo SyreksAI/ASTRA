@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PostCard } from "../post/PostCard";
+import { PostCard } from '../post/PostCard';
 import PostComposer from '../post/PostComposer';
+import { OrbitHero } from '../home/OrbitHero';
+import { enrichPostsWithConstellations } from '../../utils/constellations';
 
 export function HomePage({
     posts,
@@ -14,141 +16,87 @@ export function HomePage({
     onPostCreated,
 }) {
     const navigate = useNavigate();
-    const headerRef = useRef(null);
-    const tickingRef = useRef(false);
-    const [scrolled, setScrolled] = useState(false);
 
-    useEffect(() => {
-        const candidates = [
-            document.querySelector('.app-center-content'),
-            document.querySelector('.app-shell-content'),
-            document.querySelector('.home-page'),
-            window,
-        ].filter(Boolean);
-
-        const getY = () => {
-            let max = 0;
-            for (const el of candidates) {
-                const y = el === window
-                    ? window.scrollY || window.pageYOffset || 0
-                    : el.scrollTop || 0;
-                if (y > max) max = y;
-            }
-            return max;
-        };
-
-        const update = () => {
-            tickingRef.current = false;
-            const y = getY();
-            setScrolled(y > 0);
-        };
-
-        const onScroll = () => {
-            if (!tickingRef.current) {
-                tickingRef.current = true;
-                requestAnimationFrame(update);
-            }
-        };
-
-        for (const el of candidates) {
-            el.addEventListener('scroll', onScroll, { passive: true });
-        }
-
-        // на случай, если страница уже была прокручена при монтировании
-        update();
-
-        return () => {
-            for (const el of candidates) {
-                el.removeEventListener('scroll', onScroll);
-            }
-        };
-    }, []);
+    const enrichedPosts = useMemo(
+        () => enrichPostsWithConstellations(posts || []),
+        [posts],
+    );
 
     const handlePostCreated = (newPost) => {
-        if (onPostCreated) {
-            onPostCreated(newPost);
-        } else {
-            window.location.reload();
-        }
+        if (onPostCreated) onPostCreated(newPost);
+        else window.location.reload();
     };
 
-    const headerClassName = [
-        'home-page-header',
-        scrolled ? 'home-page-header-scrolled' : '',
-    ].filter(Boolean).join(' ');
-
     return (
-        <div className="home-page">
-            <div ref={headerRef} className={headerClassName}>
-                {/* ВЕРХНИЙ РЯД — аватар / логотип / уведомления */}
-                <div className="home-page-header-topbar">
-                    <button
-                        type="button"
-                        className="home-page-header-avatar-btn"
-                        onClick={onOpenSidebar}
-                        aria-label="Открыть меню"
-                    >
-                        {user?.avatar ? (
-                            <img
-                                src={user.avatar}
-                                alt={user.username}
-                                className="home-page-header-avatar"
-                            />
-                        ) : (
-                            <span className="home-page-header-avatar home-page-header-avatar-fallback">
-                                {user?.username?.[0]?.toUpperCase() || 'A'}
-                            </span>
-                        )}
-                    </button>
-
-                    <div className="home-page-header-logo">
-                        <img
-                            src={isDarkTheme ? '/logoDark(1).png' : '/logo(1).jpg'}
-                            alt="Логотип"
-                        />
-                    </div>
-
-                    <button
-                        type="button"
-                        className="home-page-header-notifications-btn"
-                        onClick={() => navigate('/notifications')}
-                        aria-label="Уведомления"
-                    >
-                        <img
-                            src="/menu/notifications.png"
-                            alt=""
-                            className="home-page-header-notifications-icon"
-                        />
-                    </button>
-                </div>
-
-                {/* НИЖНИЙ РЯД — табы */}
-                <div className="home-page-header-tabs">
-                    {['Для тебя', 'Следующий'].map(tab => (
-                        <p
-                            key={tab}
-                            className={`home-page-header-link ${activeTab === tab ? 'home-page-header-link-active' : ''}`}
-                            onClick={() => setActiveTab(tab)}
-                        >
-                            {tab}
-                        </p>
-                    ))}
-                </div>
-            </div>
-
-            <div className="home-page-feed">
-                <PostComposer
-                    user={user}
-                    onPostCreated={handlePostCreated}
+        <div className="home-page home-page--orbit">
+            <header className="home-mobile-bar">
+                <button
+                    type="button"
+                    className="home-mobile-bar__avatar"
+                    onClick={onOpenSidebar}
+                    aria-label="Открыть меню"
+                >
+                    {user?.avatar ? (
+                        <img src={user.avatar} alt="" />
+                    ) : (
+                        <span>{user?.username?.[0]?.toUpperCase() || 'A'}</span>
+                    )}
+                </button>
+                <img
+                    className="home-mobile-bar__logo"
+                    src={isDarkTheme ? '/elara-logo-dark.png' : '/elara-logo.png'}
+                    alt="Elara"
                 />
+                <button
+                    type="button"
+                    className="home-mobile-bar__notify"
+                    onClick={() => navigate('/notifications')}
+                    aria-label="Уведомления"
+                >
+                    <img src="/menu/notifications.png" alt="" />
+                </button>
+            </header>
 
-                {posts.map(post => (
-                    <PostCard
-                        key={post.id}
-                        post={post}
-                        onCommentCountChange={onCommentCountChange}
-                    />
-                ))}
+            <div className="home-center home-center--orbit home-center--rexon">
+                <OrbitHero activeTab={activeTab} setActiveTab={setActiveTab} />
+                <PostComposer user={user} onPostCreated={handlePostCreated} variant="orbit" />
+
+                <div className="home-center__feed">
+                    {enrichedPosts.length === 0 ? (
+                        <div className="home-empty home-empty--orbit">
+                            <p className="home-empty__eyebrow">Elara · Созвездия</p>
+                            <h2 className="home-empty__title">Лента ждёт твой первый сигнал</h2>
+                            <p className="home-empty__text">
+                                Напиши пост, отметь Созвездие — и орбита наполнится людьми.
+                            </p>
+                            <div className="home-empty__actions">
+                                <button
+                                    type="button"
+                                    className="home-empty__btn home-empty__btn--primary"
+                                    onClick={() => document.querySelector('.post-composer-input')?.focus()}
+                                >
+                                    Написать пост
+                                </button>
+                                <button
+                                    type="button"
+                                    className="home-empty__btn"
+                                    onClick={() => navigate('/constellations')}
+                                >
+                                    Найти созвездия
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        enrichedPosts.map((post) => (
+                            <PostCard
+                                key={post.id}
+                                post={post}
+                                variant="orbit"
+                                onCommentCountChange={onCommentCountChange}
+                            />
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );

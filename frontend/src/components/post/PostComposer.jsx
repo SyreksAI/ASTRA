@@ -1,146 +1,267 @@
-// src/components/post/PostComposer.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { CONSTELLATIONS } from '../../utils/constellations';
+import {
+    MAX_POST_MEDIA_COUNT,
+    POST_MEDIA_ACCEPT,
+    createComposerMediaItem,
+    validatePostMediaFile,
+} from '../../utils/postMedia';
+import { PostMediaPicker } from './PostMediaPicker';
 
-export function PostComposer({ user, onPostCreated }) {
+const CHIPS = [
+    {
+        id: 'photo',
+        label: 'Медиа',
+        icon: (
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <rect x="3.5" y="3.5" width="17" height="17" rx="2.5" />
+                <circle cx="9" cy="9" r="1.4" />
+                <path d="M3.8 16.2 9.2 11.5l3.4 3.2 3.2-3.8 4.4 5.3" />
+            </svg>
+        ),
+    },
+    {
+        id: 'poll',
+        label: 'Опрос',
+        icon: (
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+                <path d="M7 18V11M12 18V6M17 18v-5" />
+            </svg>
+        ),
+    },
+    {
+        id: 'constellation',
+        label: 'Созвездие',
+        icon: (
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                <circle cx="12" cy="12" r="3.5" />
+                <ellipse cx="12" cy="12" rx="8.5" ry="3.2" transform="rotate(-22 12 12)" />
+            </svg>
+        ),
+    },
+    {
+        id: 'emoji',
+        label: 'Эмодзи',
+        icon: (
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                <circle cx="12" cy="12" r="8.2" />
+                <path d="M8.6 14.4s1.5 2.1 3.4 2.1 3.4-2.1 3.4-2.1" strokeLinecap="round" />
+                <circle cx="9.2" cy="10" r="1" fill="currentColor" stroke="none" />
+                <circle cx="14.8" cy="10" r="1" fill="currentColor" stroke="none" />
+            </svg>
+        ),
+    },
+];
+
+export function PostComposer({ user, onPostCreated, variant = 'feed' }) {
     const [text, setText] = useState('');
     const [sending, setSending] = useState(false);
+    const [error, setError] = useState('');
+    const [mediaItems, setMediaItems] = useState([]);
+    const [activeMediaId, setActiveMediaId] = useState(null);
+    const [constellationId, setConstellationId] = useState('');
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const fileInputRef = useRef(null);
 
-    const canSend = text.trim().length > 0 && !sending;
+    const mediaItemsRef = useRef(mediaItems);
+    mediaItemsRef.current = mediaItems;
+    useEffect(() => () => {
+        mediaItemsRef.current.forEach((item) => {
+            if (item.preview) URL.revokeObjectURL(item.preview);
+        });
+    }, []);
+
+    const canSend = (text.trim().length > 0 || mediaItems.length > 0) && !sending;
+    const selectedConstellation = CONSTELLATIONS.find((c) => c.id === constellationId);
+
+    const handlePhotoClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+
+        setError('');
+        if (mediaItems.length >= MAX_POST_MEDIA_COUNT) {
+            setError(`Не более ${MAX_POST_MEDIA_COUNT} файлов`);
+            return;
+        }
+        const validationError = validatePostMediaFile(file);
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
+        const item = createComposerMediaItem(file);
+        setMediaItems((prev) => [...prev, item]);
+        setActiveMediaId(item.id);
+    };
+
+    const removeMedia = (id) => {
+        setMediaItems((prev) => {
+            const index = prev.findIndex((item) => item.id === id);
+            const target = prev[index];
+            if (target?.preview) URL.revokeObjectURL(target.preview);
+            const next = prev.filter((item) => item.id !== id);
+            if (activeMediaId === id) {
+                const fallback = next[Math.min(index, next.length - 1)];
+                setActiveMediaId(fallback?.id ?? null);
+            }
+            return next;
+        });
+    };
+
+    const clearMedia = () => {
+        mediaItems.forEach((item) => {
+            if (item.preview) URL.revokeObjectURL(item.preview);
+        });
+        setMediaItems([]);
+        setActiveMediaId(null);
+    };
+
+    const handleChip = (chipId) => {
+        if (chipId === 'photo') handlePhotoClick();
+        else if (chipId === 'constellation') setPickerOpen((v) => !v);
+    };
 
     const handleSubmit = async () => {
         if (!canSend) return;
         setSending(true);
+        setError('');
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/posts', {
+            const formData = new FormData();
+            formData.append('content', text.trim());
+            mediaItems.forEach((item) => formData.append('media', item.file));
+            if (constellationId) formData.append('constellation_id', constellationId);
+
+            const res = await fetch('/api/posts/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify({ content: text.trim() }),
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                body: formData,
             });
-            if (!res.ok) throw new Error('Ошибка отправки');
-            const newPost = await res.json();
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                const detail = Array.isArray(data?.detail)
+                    ? data.detail.map((item) => item.msg || item).join('. ')
+                    : data?.detail;
+                throw new Error(detail || 'Не удалось опубликовать');
+            }
             setText('');
-            onPostCreated?.(newPost);
+            clearMedia();
+            setConstellationId('');
+            setPickerOpen(false);
+            onPostCreated?.(data);
         } catch (err) {
             console.error(err);
+            setError(err.message || 'Ошибка отправки');
         } finally {
             setSending(false);
         }
     };
 
-    return (
-        <div className="post-composer">
-            <div className="post-composer-avatar">
-                {user?.avatar ? (
-                    <img src={user.avatar} alt={user.username} />
-                ) : (
-                    <span>{user?.username?.[0]?.toUpperCase() || '?'}</span>
-                )}
-            </div>
+    const orbitChips = variant === 'orbit'
+        ? CHIPS.filter((c) => c.id === 'photo' || c.id === 'poll' || c.id === 'emoji')
+        : CHIPS;
 
-            <div className="post-composer-main">
+    return (
+        <div className={`post-composer post-composer--feed post-composer--${variant}`}>
+            <div className="post-composer__top">
+                <div className="post-composer-avatar">
+                    {user?.avatar ? (
+                        <img src={user.avatar} alt={user.username} />
+                    ) : (
+                        <span>{user?.username?.[0]?.toUpperCase() || '?'}</span>
+                    )}
+                </div>
                 <textarea
                     className="post-composer-input"
-                    placeholder="Что происходит?"
+                    placeholder="Что сейчас занимает твои мысли?"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    rows={1}
+                    rows={variant === 'orbit' ? 1 : 2}
                 />
+            </div>
 
-                <div className="post-composer-toolbar">
-                    <div className="post-composer-icons">
-                        {/* Картинка */}
-                        <button type="button" className="post-composer-icon" aria-label="Изображение">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="1.8"
-                                strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" />
-                                <circle cx="8.5" cy="8.5" r="1.5" />
-                                <path d="M21 15l-5-5L5 21" />
-                            </svg>
-                        </button>
+            {mediaItems.length > 0 && (
+                <PostMediaPicker
+                    className="post-composer__media-picker"
+                    items={mediaItems}
+                    activeId={activeMediaId}
+                    onSelect={setActiveMediaId}
+                    onRemove={removeMedia}
+                    onRequestAdd={handlePhotoClick}
+                />
+            )}
 
-                        {/* GIF */}
-                        <button type="button" className="post-composer-icon" aria-label="GIF">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
-                                stroke="currentColor" strokeWidth="1.6"
-                                strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="2" y="6" width="20" height="12" rx="2" />
-                                <text x="5.5" y="15.5" fontSize="6" fontWeight="700"
-                                    fill="currentColor" stroke="none">GIF</text>
-                            </svg>
-                        </button>
-
-                        {/* Список */}
-                        <button type="button" className="post-composer-icon" aria-label="Список">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="1.8"
-                                strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="9" y1="6" x2="20" y2="6" />
-                                <line x1="9" y1="12" x2="20" y2="12" />
-                                <line x1="9" y1="18" x2="20" y2="18" />
-                                <circle cx="4.5" cy="6" r="1.2" />
-                                <circle cx="4.5" cy="12" r="1.2" />
-                                <circle cx="4.5" cy="18" r="1.2" />
-                            </svg>
-                        </button>
-
-                        {/* Смайл */}
-                        <button type="button" className="post-composer-icon" aria-label="Эмодзи">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="1.8"
-                                strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="9" />
-                                <path d="M8.5 14.5s1.2 1.8 3.5 1.8 3.5-1.8 3.5-1.8" />
-                                <line x1="9" y1="9.5" x2="9.01" y2="9.5" />
-                                <line x1="15" y1="9.5" x2="15.01" y2="9.5" />
-                            </svg>
-                        </button>
-
-                        {/* Камера */}
-                        <button type="button" className="post-composer-icon" aria-label="Камера">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="1.8"
-                                strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                                <circle cx="12" cy="13" r="4" />
-                            </svg>
-                        </button>
-
-                        {/* Геолокация */}
-                        <button type="button" className="post-composer-icon" aria-label="Геолокация">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="1.8"
-                                strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                <circle cx="12" cy="10" r="3" />
-                            </svg>
-                        </button>
-
-                        {/* Флаг */}
-                        <button type="button" className="post-composer-icon" aria-label="Отметить">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                                stroke="currentColor" strokeWidth="1.8"
-                                strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M4 22V4" />
-                                <path d="M4 4h13l-2 4 2 4H4" />
-                            </svg>
-                        </button>
-                    </div>
-
+            {selectedConstellation && (
+                <div className="post-composer__constellation">
+                    в Созвездии «{selectedConstellation.label}»
                     <button
                         type="button"
-                        className="post-composer-submit"
-                        onClick={handleSubmit}
-                        disabled={!canSend}
+                        className="post-composer__constellation-clear"
+                        onClick={() => setConstellationId('')}
                     >
-                        Опубликовать пост
+                        сбросить
                     </button>
                 </div>
+            )}
+
+            {pickerOpen && (
+                <div className="post-composer__picker" role="listbox" aria-label="Созвездие">
+                    {CONSTELLATIONS.map((c) => (
+                        <button
+                            key={c.id}
+                            type="button"
+                            className={`post-composer__picker-item${constellationId === c.id ? ' is-active' : ''}`}
+                            onClick={() => {
+                                setConstellationId(c.id);
+                                setPickerOpen(false);
+                            }}
+                        >
+                            {c.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {error && <div className="post-composer__error">{error}</div>}
+
+            <div className="post-composer-toolbar">
+                <div className="post-composer-icons">
+                    {orbitChips.map((chip) => (
+                        <button
+                            key={chip.id}
+                            type="button"
+                            className={`post-composer-chip${chip.id === 'constellation' && (pickerOpen || constellationId) ? ' is-active' : ''}`}
+                            aria-label={chip.label}
+                            onClick={() => handleChip(chip.id)}
+                        >
+                            {chip.icon}
+                            <span>{chip.label}</span>
+                        </button>
+                    ))}
+                </div>
+
+                <button
+                    type="button"
+                    className="post-composer-submit"
+                    onClick={handleSubmit}
+                    disabled={!canSend}
+                >
+                    {sending ? '…' : 'Опубликовать'}
+                </button>
             </div>
+
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept={POST_MEDIA_ACCEPT}
+                className="hidden-file-input"
+                onChange={handleFileChange}
+            />
         </div>
     );
 }

@@ -28,14 +28,15 @@ def update_theme(
     db: Session = Depends(get_db)
 ):
     """Сохранить тему пользователя"""
-    if current_user.preferences is None:
-        current_user.preferences = {}
-    
-    current_user.preferences["theme"] = theme_data.theme
+    theme = theme_data.theme if theme_data.theme in ("light", "dark") else "light"
+    # Новый dict — иначе SQLAlchemy может не увидеть изменение JSON
+    prefs = dict(current_user.preferences or {})
+    prefs["theme"] = theme
+    current_user.preferences = prefs
     db.commit()
     db.refresh(current_user)
-    
+
     return {
         "message": "Theme updated successfully",
-        "theme": current_user.preferences["theme"]
+        "theme": (current_user.preferences or {}).get("theme", theme),
     }

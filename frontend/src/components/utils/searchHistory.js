@@ -1,5 +1,5 @@
 // src/utils/searchHistory.js
-const KEY = 'astra_search_history';
+const KEY = 'elara_search_history';
 const MAX = 10;
 
 export function getSearchHistory() {

@@ -20,13 +20,14 @@ export const AuthProvider = ({ children }) => {
 
     // ===== ТЕМА =====
     const applyTheme = (theme) => {
-        if (theme === 'dark') {
+        const next = theme === 'dark' ? 'dark' : 'light';
+        if (next === 'dark') {
             document.body.classList.add('dark-theme');
-            localStorage.setItem('theme', 'dark');
         } else {
             document.body.classList.remove('dark-theme');
-            localStorage.setItem('theme', 'light');
         }
+        localStorage.setItem('theme', next);
+        window.dispatchEvent(new Event('themeChanged'));
     };
 
     const applyThemeVisual = (theme) => {
@@ -35,6 +36,7 @@ export const AuthProvider = ({ children }) => {
         } else {
             document.body.classList.remove('dark-theme');
         }
+        window.dispatchEvent(new Event('themeChanged'));
     };
 
     const restoreTheme = () => {
@@ -46,19 +48,11 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         setToken(null);
         setUser(null);
-        applyThemeVisual('light');
+        restoreTheme();
     };
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        const isAuthPage =
-            window.location.pathname === '/login' ||
-            window.location.pathname === '/register';
-        if (isAuthPage) {
-            applyThemeVisual('light');
-        } else {
-            applyTheme(savedTheme);
-        }
+        restoreTheme();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -80,7 +74,13 @@ export const AuthProvider = ({ children }) => {
             .then((data) => {
                 if (cancelled) return;
                 setUser(data);
-                restoreTheme();
+                const localTheme = localStorage.getItem('theme');
+                if (localTheme === 'dark' || localTheme === 'light') {
+                    restoreTheme();
+                } else {
+                    const serverTheme = data?.preferences?.theme || 'light';
+                    applyTheme(serverTheme);
+                }
             })
             .catch(() => {
                 if (cancelled) return;
@@ -165,33 +165,37 @@ export const AuthProvider = ({ children }) => {
 
     // ===== ТЕМА НА СЕРВЕРЕ =====
     const updateTheme = async (theme) => {
-        applyTheme(theme);
+        const next = theme === 'dark' ? 'dark' : 'light';
+        // Сразу сохраняем локально — это источник правды при перезагрузке
+        applyTheme(next);
 
         const currentToken = localStorage.getItem('token');
-        if (!currentToken) return;
+        if (!currentToken) return { theme: next };
 
         try {
-            const response = await fetch('/api/theme', {
+            const response = await fetch('/api/theme/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${currentToken}`,
                 },
-                body: JSON.stringify({ theme }),
+                body: JSON.stringify({ theme: next }),
             });
 
-            if (!response.ok) throw new Error('Ошибка сохранения темы');
+            if (!response.ok) {
+                console.warn('Тема сохранена локально, сервер не ответил');
+                return { theme: next };
+            }
 
             const data = await response.json();
             setUser((prev) => ({
                 ...prev,
-                preferences: { ...prev?.preferences, theme },
+                preferences: { ...(prev?.preferences || {}), theme: next },
             }));
             return data;
         } catch (error) {
-            const oldTheme = theme === 'dark' ? 'light' : 'dark';
-            applyTheme(oldTheme);
-            throw error;
+            console.warn('Тема сохранена локально:', error);
+            return { theme: next };
         }
     };
 

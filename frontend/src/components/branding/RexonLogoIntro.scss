@@ -1,0 +1,84 @@
+.rexon-logo-intro {
+  width: min(720px, 92vw);
+  aspect-ratio: 720 / 160;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  &__ring {
+    stroke-dasharray: 320;
+    stroke-dashoffset: 320;
+    animation: rexon-draw-ring 0.85s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+  }
+
+  &__ball {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    transform: scale(0);
+    animation:
+      rexon-ball-in 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) 0.55s forwards,
+      rexon-ball-teal 0.35s ease 1.55s forwards;
+  }
+
+  &__letter {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rexon-letter-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+
+    &--r {
+      animation-delay: 0.75s;
+    }
+    &--e {
+      animation-delay: 0.88s;
+    }
+    &--x {
+      animation-delay: 1.01s;
+    }
+    &--o {
+      animation-delay: 1.14s;
+    }
+    &--n {
+      animation-delay: 1.27s;
+    }
+  }
+
+  &__x-teal {
+    animation: rexon-x-teal 0.35s ease 1.55s forwards;
+  }
+}
+
+@keyframes rexon-draw-ring {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes rexon-ball-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rexon-ball-teal {
+  to {
+    fill: #16b8a6;
+  }
+}
+
+@keyframes rexon-letter-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rexon-x-teal {
+  to {
+    stroke: #16b8a6;
+  }
+}

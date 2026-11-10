@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
     Routes,
     Route,
@@ -8,12 +8,26 @@ import {
     Navigate,
 } from 'react-router-dom';
 import "./static/master.scss";
+import "./static/orbit-chat.scss";
+import "./static/mateai.scss";
+import "./static/music.scss";
+import "./static/constellations.scss";
+import "./static/notifications.scss";
+import "./static/rexon-home.scss";
 
 import { Menu } from './components/layout/Menu';
-import { MusicPlayer } from './components/music/MusicPlayer';
+import { NearbyConstellations } from './components/layout/NearbyConstellations';
+import { SuggestedPeople } from './components/layout/SuggestedPeople';
+import { AstraMusicCard } from './components/layout/AstraMusicCard';
+import { ProfileSidebar } from './components/layout/ProfileSidebar';
+import { ConstellationSidebar } from './components/layout/ConstellationSidebar';
+import { OrbitTopBar } from './components/layout/OrbitTopBar';
 import { HomePage } from './components/pages/HomePage';
 import { ExplorePage } from './components/pages/ExplorePage';
+import { ConstellationPage } from './components/pages/ConstellationPage';
+import { ConstellationsPage } from './components/pages/ConstellationsPage';
 import { ProfilePage } from './components/pages/ProfilePage';
+import { CONSTELLATIONS } from './utils/constellations';
 import { ChatPage } from './components/pages/ChatPage';
 import { NotificationsPage } from './components/pages/NotificationsPage';
 import { UnderDevelopmentPage } from './components/pages/UnderDevelopmentPage';
@@ -22,8 +36,11 @@ import { MusicPage } from './components/pages/MusicPage';
 import { ModalMore } from './components/modal/ModalMore';
 import { SettingsPage } from './components/pages/SettingsPage';
 import { UserProfilePage } from './components/pages/UserProfilePage';
+import { MateAIPage } from './components/pages/MateAIPage';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ChatProvider, useChat } from './context/ChatContext';
+import { countUnreadConversations } from './utils/chatApi';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
 
@@ -307,40 +324,88 @@ const AppContent = () => {
         setIsSidebarOpen(false);
     }, [location.pathname]);
 
+    const { conversations: chatConversations } = useChat();
+    const chatUnreadBadge = useMemo(
+        () => countUnreadConversations(chatConversations),
+        [chatConversations],
+    );
+
+    const menuItems = [
+        { id: 'Главная',     iconKey: 'home',          label: 'Главная',     path: '/' },
+        { id: 'Созвездия',   iconKey: 'constellation', label: 'Созвездия',   path: '/constellations' },
+        {
+            id: 'Сообщения',
+            iconKey: 'messages',
+            label: 'Сообщения',
+            path: '/chat',
+            ...(chatUnreadBadge > 0 ? { badge: chatUnreadBadge } : {}),
+        },
+        { id: 'Музыка',      iconKey: 'music',         label: 'Музыка',      path: '/music' },
+        { id: 'MateAI',      iconKey: 'mateai',        label: 'MateAI',      path: '/mateai' },
+        { id: 'Уведомления', iconKey: 'notifications', label: 'Уведомления', path: '/notifications', badge: 12 },
+        { id: 'Профиль',     iconKey: 'profile',       label: 'Профиль',     path: '/profile' },
+    ];
+
+    useEffect(() => {
+        const path = location.pathname;
+        if (path === '/') setActiveItem('Главная');
+        else if (
+            path.startsWith('/explore')
+            || path === '/constellations'
+            || path.startsWith('/constellation/')
+        ) setActiveItem('Созвездия');
+        else if (path.startsWith('/notifications')) setActiveItem('Уведомления');
+        else if (path.startsWith('/chat')) setActiveItem('Сообщения');
+        else if (path.startsWith('/music')) setActiveItem('Музыка');
+        else if (path.startsWith('/mateai')) setActiveItem('MateAI');
+        else if (path.startsWith('/profile')) setActiveItem('Профиль');
+    }, [location.pathname]);
+
     const toggleTheme = async () => {
         const newTheme = isDarkTheme ? 'light' : 'dark';
-        setIsDarkTheme(!isDarkTheme);
-        document.body.classList.toggle('dark-theme');
+        setIsDarkTheme(newTheme === 'dark');
         try {
             await updateTheme(newTheme);
         } catch (error) {
-            setIsDarkTheme(isDarkTheme);
-            document.body.classList.toggle('dark-theme');
             console.error('Ошибка сохранения темы:', error);
         }
     };
 
-    const menuItems = [
-        { id: 'Главная',     icon: '/menu/home.png',          label: 'Главная',     path: '/' },
-        { id: 'Исследовать', icon: '/menu/search.png',        label: 'Исследовать', path: '/explore' },
-        { id: 'Уведомления', icon: '/menu/notifications.png', label: 'Уведомления', path: '/notifications' },
-        { id: 'Чат',         icon: '/menu/chat.png',          label: 'Чат',         path: '/chat' },
-        { id: 'Музыка',      icon: '/menu/music.png',         label: 'Музыка',      path: '/music' },
-        { id: 'Профиль',     icon: '/menu/profile.png',       label: 'Профиль',     path: '/profile' },
-        { id: 'Более',       icon: '/menu/more.png',          label: 'Более',       path: '#' },
-    ];
-
     const suggestedUsers = [
-        { id: 1, name: 'Павел Дуров',    role: 'CEO Telegram', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBXjt3QBuQnsx3pKEV-UpT8XXychSKg9gij_WRs4OY1A&s=10' },
-        { id: 2, name: 'Дмитрий Нагиев', role: 'Актёр',        img: 'https://avatars.mds.yandex.net/i?id=a0629e3b84c2ddbeeb6ee3a0d606f558563ec106-5171197-images-thumbs&n=13' },
-        { id: 3, name: 'Егор Крид',      role: 'Певец',        img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSox8V0ukDUsoxpzJtiA_nZj9wTmVal5asFAoN2u8PZTw&s=10' },
-        { id: 4, name: 'Сергей Жуков',   role: 'Певец',        img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRd-8LIrbnf-SCygSHIM6pWBiLbpeQk05V0mDx1GuoMyw&s=10' },
+        {
+            id: 1,
+            name: 'Егор Ковалёв',
+            role: 'UI/UX дизайнер',
+            constellation: 'В Созвездии дизайна',
+            bio: '«Создаю понятные и красивые интерфейсы. Люблю минимализм и космос.»',
+            img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop',
+        },
+        {
+            id: 2,
+            name: 'Алиса Миронова',
+            role: 'Продуктовый дизайн',
+            constellation: 'В Созвездии дизайна',
+            bio: '«Собираю спокойные продукты и люблю чистую типографику.»',
+            img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop',
+        },
+        {
+            id: 3,
+            name: 'Марк Волков',
+            role: 'Разработчик',
+            constellation: 'В Созвездии разработки',
+            bio: '«Пишу код и ловлю орбитальные баги по ночам.»',
+            img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop',
+        },
     ];
 
     const tracks = [
-        { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', duration: '3:20', cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiHcy_0l0iJEr9v7kqah11L4Y7aNmaxkLzV9Lxk-i27g&s=10' },
-        { id: 2, title: 'Starboy',         artist: 'The Weeknd', album: 'Starboy',     duration: '4:16', cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJUkqkUuLBuqBtKfsUwrdPKe3SW-5Worv4h1lF4cUa_g&s=10' },
-        { id: 3, title: 'Save Your Tears', artist: 'The Weeknd', album: 'After Hours', duration: '3:35', cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPvZDT7T5F71HOZrj5hlJUPJf_Qsg-q4NGN9ioK5vxrg&s=10' },
+        { id: 1, title: 'Космос внутри', artist: 'Три дня дождя', album: 'Orbit', duration: '3:27', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120&h=120&fit=crop' },
+        { id: 2, title: 'Night Signals', artist: 'Elara Music', album: 'Orbit', duration: '3:48', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120&h=120&fit=crop' },
+        { id: 3, title: 'Soft Horizon', artist: 'Elara Music', album: 'Orbit', duration: '3:12', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&h=120&fit=crop' },
+        { id: 4, title: 'Orbit Glow', artist: 'Elara Music', album: 'Focus', duration: '2:48', cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop' },
+        { id: 5, title: 'Лунный шёпот', artist: 'Сигнал', album: 'Night', duration: '3:05', cover: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=120&h=120&fit=crop' },
+        { id: 6, title: 'Пульс города', artist: 'Три дня дождя', album: 'Live', duration: '3:41', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&h=120&fit=crop' },
+        { id: 7, title: 'Тихий космос', artist: 'Elara AI', album: 'Calm', duration: '4:02', cover: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=120&h=120&fit=crop' },
     ];
 
     const [posts, setPosts] = useState([]);
@@ -378,7 +443,14 @@ const AppContent = () => {
     const handleAddPost = async (newPostData) => {
         const formData = new FormData();
         formData.append('content', newPostData.text || '');
-        if (newPostData.imageFile) formData.append('image', newPostData.imageFile);
+        if (newPostData.mediaFiles?.length) {
+            newPostData.mediaFiles.forEach((file) => formData.append('media', file));
+        } else if (newPostData.imageFile) {
+            formData.append('image', newPostData.imageFile);
+        }
+        if (newPostData.constellationId) {
+            formData.append('constellation_id', newPostData.constellationId);
+        }
         const response = await fetch('/api/posts/', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
@@ -420,18 +492,34 @@ const AppContent = () => {
     const isSettingsPage = location.pathname === '/settings';
     const isChatPage = location.pathname === '/chat' || location.pathname.startsWith('/chat/');
     const isMusicPage = location.pathname === '/music';
-    const shouldHideRightSidebar = isSettingsPage || isChatPage || isMusicPage;
+    const isProfilePage = location.pathname === '/profile' || location.pathname.startsWith('/user/');
+    const isConstellationsMapPage = location.pathname === '/constellations';
+    const isConstellationPage = location.pathname.startsWith('/constellation/');
+    const constellationId = isConstellationPage
+        ? location.pathname.split('/')[2]
+        : null;
+    const activeConstellation = CONSTELLATIONS.find((c) => c.id === constellationId)
+        || (constellationId ? { id: constellationId, label: 'Созвездие' } : null);
+    const isMateAIPage = location.pathname.startsWith('/mateai');
+    const isHomePage = location.pathname === '/';
+    const isIconRail = isChatPage || isMateAIPage;
+    const shouldHideRightSidebar = isSettingsPage || isChatPage || isMusicPage || isMateAIPage || isConstellationsMapPage;
+    const shouldShowTopBar = !isSettingsPage && !isMusicPage && !isChatPage && !isConstellationsMapPage;
 
     const renderSidebarInner = (opts = {}) => {
         const { collapsed = false, logoOverride = null } = opts;
+
         return (
-            <div className={`app-left-sidebar ${collapsed ? 'app-left-sidebar-collapsed' : ''}`}>
+            <div className={`app-left-sidebar${collapsed ? ' app-left-sidebar-collapsed' : ''}`}>
                 <div className="app-left-sidebar-block">
                     <div className="app-logo-wrapper">
                         <img
-                            src={logoOverride || (isDarkTheme ? '/logoDark.png' : '/logo.jpg')}
-                            alt="Логотип"
-                            className={`app-logo ${isDarkTheme ? 'app-logo-dark' : ''}`}
+                            src={
+                                logoOverride
+                                || (isDarkTheme ? '/elara-logo-dark.png' : '/elara-logo.png')
+                            }
+                            alt="Elara"
+                            className="app-logo"
                         />
                     </div>
                     <Menu
@@ -440,167 +528,147 @@ const AppContent = () => {
                         onItemClick={handleMenuItemClick}
                         onOpenModal={() => setIsModalOpen(true)}
                         onOpenSettings={() => setIsSettingsOpen(true)}
+                        user={user}
                     />
-                    <div className="app-user-profile">
-                        <div className="app-user-avatar">
-                            {user?.avatar ? (
-                                <img src={user.avatar} alt={user.username} />
-                            ) : (
-                                user?.username?.[0]?.toUpperCase() || 'A'
-                            )}
-                        </div>
-                        <div className="app-user-info">
-                            <div className="app-user-name">
-                                {user?.full_name || user?.username || 'Алексей'}
-                            </div>
-                            <div className="app-user-handle">
-                                @{user?.username || 'alexey'}
-                            </div>
-                        </div>
-                        <div className="app-user-more">•••</div>
-                    </div>
                 </div>
             </div>
         );
     };
 
     return (
-        <div className="app">
-            <div className={`app-main-wrapper ${isChatPage ? 'app-main-wrapper-chat' : ''} ${isMusicPage ? 'app-main-wrapper-music' : ''}`}>
-                <div className="app-left-sidebar-desktop">
+        <div className="app app--orbit">
+            <div className={`app-main-wrapper ${isChatPage ? 'app-main-wrapper-chat' : ''} ${isMusicPage ? 'app-main-wrapper-music' : ''} ${isConstellationsMapPage ? 'app-main-wrapper-constellations' : ''}`}>
+                <div
+                    className={`app-left-sidebar-desktop${isIconRail ? ' app-left-sidebar-desktop--rail' : ''}${isHomePage ? ' app-left-sidebar-desktop--home' : ''}`}
+                >
                     {renderSidebarInner({
-                        collapsed: isChatPage,
-                        logoOverride: isChatPage ? '/menu/chat-logo.png' : null,
+                        collapsed: isIconRail,
+                        logoOverride: isIconRail
+                            ? (isDarkTheme ? '/elara-mark-dark.png' : '/elara-mark.png')
+                            : null,
                     })}
                 </div>
 
-                <div className={`app-center-content ${isChatPage ? 'app-center-content-chat' : ''} ${isMusicPage ? 'app-center-content-music' : ''}`}>
-                    <Routes>
-                        <Route path="/" element={
-                            <ProtectedRoute>
-                                <HomePage
-                                    posts={posts}
-                                    activeTab={activeTab}
-                                    setActiveTab={setActiveTab}
-                                    onCommentCountChange={handleCommentCountChange}
-                                    onOpenSidebar={() => setIsSidebarOpen(true)}
-                                    user={user}
-                                    isDarkTheme={isDarkTheme}
-                                />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/explore" element={
-                            <ProtectedRoute>
-                                <ExplorePage suggestedUsers={suggestedUsers} />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/profile" element={
-                            <ProtectedRoute>
-                                <ProfilePage posts={posts} onCommentCountChange={handleCommentCountChange} />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/notifications" element={
-                            <ProtectedRoute>
-                                <NotificationsPage />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/chat" element={<ChatPage />} />
-                        <Route path="/chat/:conversationId" element={<ChatPage />} />
-                        <Route path="/music" element={
-                            <ProtectedRoute>
-                                <MusicPage
-                                    tracks={tracks}
-                                    currentTrack={currentTrack}
-                                    isPlaying={isPlaying}
-                                    onPlayToggle={handlePlayToggle}
-                                    onNext={handleNextTrack}
-                                    onPrev={handlePrevTrack}
-                                    onTrackSelect={(index) => {
-                                        setCurrentTrack(index);
-                                        setIsPlaying(true);
-                                    }}
-                                />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/settings" element={
-                            <ProtectedRoute>
-                                <SettingsPage />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/user/:username" element={
-                            <ProtectedRoute>
-                                <UserProfilePage />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/more" element={<Navigate to="/" replace />} />
-                        <Route path="*" element={<UnderDevelopmentPage pageName="Страница не найдена" />} />
-                    </Routes>
-                </div>
-
-                <div className={`app-right-sidebar ${shouldHideRightSidebar ? 'app-right-sidebar-hidden' : ''}`}>
-                    <div className="app-search-wrapper">
-                        <input type="search" className="app-search-input" placeholder="Поиск..." />
-                    </div>
-                    <div className="app-news-container">
-                        <div className="app-news-header">
-                            <h3 className="app-news-title">Последние новости</h3>
-                            <div className="app-news-divider">___________________</div>
-                        </div>
-                        <div className="app-news-list">
-                            {[
-                                { title: 'Парень из Москвы собрал $1000000 инвестиций', date: '2 часа назад • IT • 356 постов' },
-                                { title: 'Девушка изобрела руку повар и приготовила ужин', date: '5 часов назад • DevOps • 106 постов' },
-                                { title: 'Парни из Краснодара разработали машину для сплава железа', date: '8 часов назад • DevOps • 582 постов' },
-                            ].map((news, i) => (
-                                <div key={i} className="app-news-item">
-                                    <h4 className="app-news-item-title">{news.title}</h4>
-                                    <div className="app-news-item-meta">
-                                        <p className="app-news-item-date">{news.date}</p>
-                                    </div>
-                                </div>
-                            ))}
-                            <button className="app-news-more-btn">Ещё новости</button>
-                        </div>
-                    </div>
-
-                    {!isMusicPage && (
-                        <MusicPlayer
-                            tracks={tracks}
-                            currentTrack={currentTrack}
-                            isPlaying={isPlaying}
-                            onPlayToggle={handlePlayToggle}
-                            onNext={handleNextTrack}
-                            onPrev={handlePrevTrack}
+                <div className={`app-orbit-main${isIconRail ? ' app-orbit-main--rail' : ''}`}>
+                    {shouldShowTopBar && (
+                        <OrbitTopBar
+                            user={user}
+                            isDarkTheme={isDarkTheme}
+                            onToggleTheme={toggleTheme}
                         />
                     )}
 
-                    <div className="app-suggestions-block">
-                        <div className="app-suggestions-header">
-                            <h3 className="app-suggestions-title">За кем следить</h3>
-                            <div className="app-suggestions-divider">___________________</div>
+                    <div className={`app-orbit-body${isHomePage ? ' app-orbit-body--home' : ''}`}>
+                        <div className={`app-center-content ${isChatPage ? 'app-center-content-chat' : ''} ${isMusicPage ? 'app-center-content-music' : ''} ${isConstellationsMapPage ? 'app-center-content-constellations' : ''}${isHomePage ? ' app-center-content--home' : ''}`}>
+                            <Routes>
+                                <Route path="/" element={
+                                    <ProtectedRoute>
+                                        <HomePage
+                                            posts={posts}
+                                            activeTab={activeTab}
+                                            setActiveTab={setActiveTab}
+                                            onCommentCountChange={handleCommentCountChange}
+                                            onOpenSidebar={() => setIsSidebarOpen(true)}
+                                            user={user}
+                                            isDarkTheme={isDarkTheme}
+                                            onPostCreated={(newPost) => {
+                                                setPosts((prev) => [newPost, ...prev]);
+                                            }}
+                                        />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/explore" element={
+                                    <ProtectedRoute>
+                                        <ExplorePage suggestedUsers={suggestedUsers} />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/constellations" element={
+                                    <ProtectedRoute>
+                                        <ConstellationsPage />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/explore/constellations" element={<Navigate to="/constellations" replace />} />
+                                <Route path="/constellation/:id" element={
+                                    <ProtectedRoute>
+                                        <ConstellationPage
+                                            posts={posts}
+                                            onCommentCountChange={handleCommentCountChange}
+                                            onPostCreated={(newPost) => {
+                                                setPosts((prev) => [newPost, ...prev]);
+                                            }}
+                                        />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/profile" element={
+                                    <ProtectedRoute>
+                                        <ProfilePage posts={posts} onCommentCountChange={handleCommentCountChange} />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/notifications" element={
+                                    <ProtectedRoute>
+                                        <NotificationsPage />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/chat" element={<ChatPage />} />
+                                <Route path="/chat/:conversationId" element={<ChatPage />} />
+                                <Route path="/music" element={
+                                    <ProtectedRoute>
+                                        <MusicPage
+                                            tracks={tracks}
+                                            currentTrack={currentTrack}
+                                            isPlaying={isPlaying}
+                                            onPlayToggle={handlePlayToggle}
+                                            onNext={handleNextTrack}
+                                            onPrev={handlePrevTrack}
+                                            onTrackSelect={(index) => {
+                                                setCurrentTrack(index);
+                                                setIsPlaying(true);
+                                            }}
+                                        />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/settings" element={
+                                    <ProtectedRoute>
+                                        <SettingsPage />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/user/:username" element={
+                                    <ProtectedRoute>
+                                        <UserProfilePage />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/mateai" element={
+                                    <ProtectedRoute>
+                                        <MateAIPage />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/more" element={<Navigate to="/mateai" replace />} />
+                                <Route path="*" element={<UnderDevelopmentPage pageName="Страница не найдена" />} />
+                            </Routes>
                         </div>
-                        <div className="app-suggestions-list">
-                            {suggestedUsers.map((person) => (
-                                <div key={person.id} className="app-suggestion-item">
-                                    <img className="app-suggestion-avatar" src={person.img} alt={person.name} />
-                                    <div className="app-suggestion-info">
-                                        <h3 className="app-suggestion-name">{person.name}</h3>
-                                        <p className="app-suggestion-role">{person.role}</p>
-                                    </div>
-                                    <div className="app-suggestion-btn-wrapper">
-                                        <button className="app-suggestion-follow-btn">Следовать</button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <button className="app-suggestions-more-btn">Показать ещё</button>
-                    </div>
 
-                    <div className="app-terms-block">
-                        <p className="app-terms-text">
-                            Условия · Конфиденциальность · Доступность · Информация о рекламе · Более <br />
-                            © 2026 Astra · SyreksAI.
-                        </p>
+                        {!shouldHideRightSidebar && (
+                            <div className={`app-right-sidebar app-right-sidebar--orbit${isHomePage ? ' app-right-sidebar--home' : ''}`}>
+                                {isProfilePage ? (
+                                    <ProfileSidebar user={user} />
+                                ) : isConstellationPage ? (
+                                    <ConstellationSidebar constellation={activeConstellation} />
+                                ) : (
+                                    <>
+                                        <NearbyConstellations />
+                                        <AstraMusicCard
+                                            tracks={tracks}
+                                            currentTrack={currentTrack}
+                                            isPlaying={isPlaying}
+                                            onPlayToggle={handlePlayToggle}
+                                            onNext={handleNextTrack}
+                                            onPrev={handlePrevTrack}
+                                        />
+                                        <SuggestedPeople users={suggestedUsers} />
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -646,7 +714,9 @@ const AppRouter = () => {
 function App() {
     return (
         <AuthProvider>
-            <AppRouter />
+            <ChatProvider>
+                <AppRouter />
+            </ChatProvider>
         </AuthProvider>
     );
 }

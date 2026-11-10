@@ -14,7 +14,7 @@ from fastapi import (
 )
 from jose import JWTError, jwt
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from backend.database import SessionLocal, get_db
@@ -129,6 +129,26 @@ def get_member_ids(db: Session, conversation_id: int) -> list[int]:
     ).all())
 
 
+async def broadcast_messages_read(
+    db: Session,
+    conversation_id: int,
+    reader_id: int,
+    read_at: datetime,
+) -> None:
+    targets = [uid for uid in get_member_ids(db, conversation_id) if uid != reader_id]
+    if not targets:
+        return
+    await manager.broadcast(
+        user_ids=targets,
+        payload={
+            "type": "messages.read",
+            "conversation_id": conversation_id,
+            "reader_id": reader_id,
+            "read_at": read_at.isoformat(),
+        },
+    )
+
+
 def is_member(db: Session, conversation_id: int, user_id: int) -> bool:
     return db.scalar(
         select(ConversationMember.id).where(
@@ -184,15 +204,14 @@ def build_conversation_payload(
         .limit(1)
     )
 
-    unread = db.scalar(
-        select(Message)
+    unread_count = db.scalar(
+        select(func.count(Message.id))
         .where(
             Message.conversation_id == conv.id,
             Message.sender_id != current_user_id,
             Message.read_at.is_(None),
         )
-        .limit(1)
-    )
+    ) or 0
 
     members = db.scalars(
         select(User)
@@ -238,7 +257,8 @@ def build_conversation_payload(
             if last_message
             else conv.updated_at.isoformat()
         ),
-        "has_unread": unread is not None,
+        "unread_count": unread_count,
+        "has_unread": unread_count > 0,
     }
 
 
@@ -569,6 +589,8 @@ def leave_group(
 @router.get("/conversations/{conversation_id}/messages")
 def list_messages(
     conversation_id: int,
+    before_id: int | None = None,
+    limit: int = 80,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -578,29 +600,60 @@ def list_messages(
     if not is_member(db, conversation_id, current_user.id):
         raise HTTPException(403, "Нет доступа к этому диалогу")
 
-    messages = db.scalars(
-        select(Message)
-        .where(Message.conversation_id == conversation_id)
-        .order_by(Message.created_at.asc())
-        .limit(500)
-    ).all()
+    limit = min(max(limit, 1), 200)
+    query = select(Message).where(Message.conversation_id == conversation_id)
 
-    now = datetime.utcnow()
-    changed = False
-    for msg in messages:
-        if msg.sender_id != current_user.id and msg.read_at is None:
-            msg.read_at = now
-            changed = True
-    if changed:
-        db.commit()
+    if before_id is not None:
+        anchor = db.get(Message, before_id)
+        if anchor is None or anchor.conversation_id != conversation_id:
+            raise HTTPException(400, "Некорректный before_id")
+        query = query.where(Message.created_at < anchor.created_at)
+
+    batch = list(
+        db.scalars(query.order_by(Message.created_at.desc()).limit(limit)).all()
+    )
+    batch.reverse()
+    has_more = len(batch) == limit
 
     return {
         "conversation_id": conv.id,
         "type": conv.type,
         "title": conv.title,
         "user": None,
-        "messages": [serialize_message(m, current_user.id) for m in messages],
+        "messages": [serialize_message(m, current_user.id) for m in batch],
+        "has_more": has_more,
     }
+
+
+@router.post("/conversations/{conversation_id}/read", status_code=200)
+async def mark_conversation_read(
+    conversation_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conv = db.get(Conversation, conversation_id)
+    if conv is None:
+        raise HTTPException(404, "Диалог не найден")
+    if not is_member(db, conversation_id, current_user.id):
+        raise HTTPException(403, "Нет доступа к этому диалогу")
+
+    now = datetime.utcnow()
+    messages = db.scalars(
+        select(Message).where(
+            Message.conversation_id == conversation_id,
+            Message.sender_id != current_user.id,
+            Message.read_at.is_(None),
+        )
+    ).all()
+
+    for msg in messages:
+        msg.read_at = now
+
+    if messages:
+        db.commit()
+        await broadcast_messages_read(db, conversation_id, current_user.id, now)
+
+    return {"ok": True, "unread_count": 0}
 
 
 @router.post("/conversations/{conversation_id}/messages", status_code=201)

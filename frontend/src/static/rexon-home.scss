@@ -1,0 +1,186 @@
+/* Elara home — layout as mock: search in feed, context nav in right column */
+
+.app--orbit {
+  --orbit-bg: #f5f7fa;
+  --rexon-mint: #e0f2f1;
+  --rexon-card: #ffffff;
+  --rexon-border: rgba(15, 23, 42, 0.07);
+}
+
+body.dark-theme.app--orbit,
+body.dark-theme .app--orbit {
+  --orbit-bg: #050107;
+  --rexon-mint: rgba(22, 184, 166, 0.18);
+  --rexon-card: #0a0610;
+  --rexon-border: rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 1024px) {
+  .app-orbit-body--home {
+    align-items: flex-start;
+  }
+
+  .app-center-content--home {
+    max-width: 640px;
+    flex: 1 1 auto;
+    margin: 0 auto;
+    padding: 0 8px 0 16px;
+  }
+
+  .app-right-sidebar--home {
+    padding-top: 8px !important;
+    flex: 0 0 380px !important;
+  }
+}
+
+/* Поиск — верх центральной колонки */
+.orbit-feed-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--rexon-card);
+  border: 1px solid var(--rexon-border);
+  color: #8b98a5;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: rgba(22, 184, 166, 0.45);
+    box-shadow: 0 0 0 3px rgba(22, 184, 166, 0.12);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 15px;
+    color: #0f1419;
+
+    &::placeholder {
+      color: #9aa5b1;
+    }
+  }
+}
+
+body.dark-theme .orbit-feed-search input {
+  color: #e7e9ea;
+}
+
+.orbit-feed-search--home {
+  margin-bottom: 4px;
+}
+
+/* Hero: заголовок → подзаголовок → табы */
+.orbit-head--rexon {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 4px 2px 6px;
+  gap: 0;
+}
+
+.orbit-head--rexon .orbit-head__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orbit-head--rexon .orbit-head__title {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.orbit-head--rexon .feed-tabs--orbit {
+  margin: 4px 0 0;
+  align-self: flex-start;
+}
+
+.home-center--rexon {
+  gap: 16px;
+  padding-top: 16px;
+}
+
+/* Контекстная шапка в правой колонке */
+.orbit-topbar--context {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 0 0 16px;
+  margin-bottom: 4px;
+  background: transparent;
+  border: none;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.orbit-topbar--context .orbit-topbar__right--solo {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 14px;
+}
+
+.orbit-topbar--context .orbit-topbar__links {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  font-size: 14px;
+}
+
+.orbit-topbar--context .orbit-topbar__actions {
+  justify-content: flex-end;
+}
+
+.orbit-topbar--context .orbit-topbar__sep {
+  display: block;
+}
+
+/* Левое меню — mint pill как на макете */
+.app--orbit .menu-item.menu-item-active {
+  background: var(--rexon-mint);
+  border-radius: 999px;
+
+  .menu-item-icon {
+    color: #0f766e;
+  }
+
+  .menu-item-label {
+    font-weight: 700;
+    color: #0f1419;
+  }
+}
+
+body.dark-theme .app--orbit .menu-item.menu-item-active {
+  .menu-item-icon {
+    color: #5eead4;
+  }
+
+  .menu-item-label {
+    color: #e7e9ea;
+  }
+}
+
+/* Панели справа — белые карточки */
+.app-right-sidebar--home .orbit-panel {
+  background: var(--rexon-card);
+  border: 1px solid var(--rexon-border);
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.app-center-content--home .post-composer--orbit,
+.app-center-content--home .feed-post--orbit {
+  border-radius: 20px;
+  border-color: var(--rexon-border);
+  background: var(--rexon-card);
+}

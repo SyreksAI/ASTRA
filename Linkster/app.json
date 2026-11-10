@@ -1,0 +1,82 @@
+{
+  "expo": {
+    "name": "Linkster",
+    "slug": "astra-talk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000A13"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bitcode": false,
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      },
+      "bundleIdentifier": "com.astra.talk"
+    },
+    "android": {
+      "usesCleartextTraffic": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#000A13"
+      },
+      "package": "com.astra.talk",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
+    },
+    "plugins": [
+      "@config-plugins/react-native-webrtc",
+      "@config-plugins/react-native-callkeep",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24
+          }
+        }
+      ],
+      "@novartc/expo-config-plugin-incall-manager",
+      "expo-font",
+      "expo-splash-screen",
+      "expo-image",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Linkster сохраняет фото в галерею.",
+          "savePhotosPermission": "Linkster сохраняет фото в галерею.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      "expo-audio",
+      "expo-asset",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Linkster снимает фото и видеосообщения.",
+          "microphonePermission": "Linkster записывает голос и видео в чате.",
+          "recordAudioAndroid": true
+        }
+      ],
+      "expo-video",
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false,
+          "style": "dark"
+        }
+      ]
+    ]
+  }
+}

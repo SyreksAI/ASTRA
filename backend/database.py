@@ -50,3 +50,17 @@ def init_db():
         connection.execute(text(
             "ALTER TABLE messages ADD COLUMN IF NOT EXISTS mime_type VARCHAR(100)"
         ))
+        connection.execute(text(
+            "ALTER TABLE posts ADD COLUMN IF NOT EXISTS constellation_id INTEGER"
+        ))
+        connection.execute(text(
+            "ALTER TABLE posts ADD COLUMN IF NOT EXISTS media JSONB"
+        ))
+
+    # Сиды созвездий
+    db = SessionLocal()
+    try:
+        from backend.routes.constellations import seed_constellations
+        seed_constellations(db)
+    finally:
+        db.close()

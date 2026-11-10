@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { createDirectConversation } from '../../utils/chatApi';
 import { PostCard } from '../post/PostCard';
 
 export function UserProfilePage({ onCommentCountChange }) {
@@ -74,18 +75,7 @@ export function UserProfilePage({ onCommentCountChange }) {
 
     async function handleMessage() {
         try {
-            const token = localStorage.getItem('token');
-            const headers = {
-                'Content-Type': 'application/json',
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            };
-            const response = await fetch('/api/chat/conversations', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ user_id: profile.id }),
-            });
-            if (!response.ok) throw new Error('Не удалось открыть чат');
-            const conv = await response.json();
+            const conv = await createDirectConversation(profile.id);
             navigate(`/chat/${conv.id}`);
         } catch (err) {
             console.error(err);
@@ -152,7 +142,7 @@ export function UserProfilePage({ onCommentCountChange }) {
                 <h1 className="puser_profile_name">{profile.full_name || profile.username}</h1>
                 <p className="UserName_profile">@{profile.username}</p>
                 {profile.bio && <p className="info_user">{profile.bio}</p>}
-                {joinedAt && <p className="profile-joined-date">На Astra с {joinedAt}</p>}
+                {joinedAt && <p className="profile-joined-date">На Elara с {joinedAt}</p>}
 
                 <div className="profile-stats" style={{ display: 'flex', gap: 16, marginTop: 8 }}>
                     <span><b>{profile.following_count}</b> подписок</span>

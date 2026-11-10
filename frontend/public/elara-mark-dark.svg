@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Elara">
+  <circle cx="32" cy="32" r="26" stroke="#F3F4F6" stroke-width="2.2" opacity="0.9"/>
+  <circle cx="46" cy="17" r="7.5" fill="#F3F4F6"/>
+  <path d="M18 40c0-8 5.5-14 14-14h8" stroke="#F3F4F6" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M18 40h14" stroke="#F3F4F6" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { AuthSplitShell } from '../auth/AuthSplitShell';
 import '../../static/AuthPages.scss';
 
 const RegisterPage = () => {
@@ -8,7 +9,7 @@ const RegisterPage = () => {
         username: '',
         email: '',
         password: '',
-        full_name: ''
+        full_name: '',
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -35,74 +36,69 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-container">
-                <div className="auth-logo">
-                    <img src="/logo.jpg" alt="Astra" />
-                    <h1>Создайте аккаунт</h1>
-                    <p>Присоединяйтесь к сообществу Astra</p>
-                </div>
+        <AuthSplitShell>
+            <header className="auth-landing__head">
+                <h2>Создайте аккаунт</h2>
+                <p>Присоединяйтесь к сообществу Elara</p>
+            </header>
 
-                {error && <div className="auth-error">{error}</div>}
+            {error && <div className="auth-landing__error">{error}</div>}
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    <div className="form-group">
-                        <label>Имя пользователя</label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            placeholder="Выберите никнейм"
-                            required
-                        />
-                    </div>
+            <form onSubmit={handleSubmit} className="auth-landing__form">
+                <label className="auth-landing__field auth-landing__field--plain">
+                    <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        placeholder="Имя пользователя"
+                        autoComplete="username"
+                        required
+                    />
+                </label>
+                <label className="auth-landing__field auth-landing__field--plain">
+                    <input
+                        type="text"
+                        name="full_name"
+                        value={formData.full_name}
+                        onChange={handleChange}
+                        placeholder="Полное имя (необязательно)"
+                        autoComplete="name"
+                    />
+                </label>
+                <label className="auth-landing__field auth-landing__field--plain">
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="Email"
+                        autoComplete="email"
+                        required
+                    />
+                </label>
+                <label className="auth-landing__field auth-landing__field--plain">
+                    <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Пароль"
+                        autoComplete="new-password"
+                        required
+                    />
+                </label>
 
-                    <div className="form-group">
-                        <label>Полное имя (опционально)</label>
-                        <input
-                            type="text"
-                            name="full_name"
-                            value={formData.full_name}
-                            onChange={handleChange}
-                            placeholder="Ваше полное имя"
-                        />
-                    </div>
+                <button type="submit" disabled={loading} className="auth-landing__submit">
+                    {loading ? 'Регистрация…' : 'Зарегистрироваться'}
+                    <span aria-hidden>→</span>
+                </button>
+            </form>
 
-                    <div className="form-group">
-                        <label>Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Введите email"
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Пароль</label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="Придумайте пароль"
-                            required
-                        />
-                    </div>
-
-                    <button type="submit" disabled={loading} className="auth-btn">
-                        {loading ? 'Регистрация...' : 'Зарегистрироваться'}
-                    </button>
-                </form>
-
-                <div className="auth-footer">
-                    <p>Уже есть аккаунт? <Link to="/login">Войти</Link></p>
-                </div>
-            </div>
-        </div>
+            <p className="auth-landing__switch">
+                Уже есть аккаунт? <Link to="/login">Войти</Link>
+            </p>
+        </AuthSplitShell>
     );
 };
 

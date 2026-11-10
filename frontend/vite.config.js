@@ -16,36 +16,36 @@ export default defineConfig({
         allowedHosts: [
             'localhost',
             '127.0.0.1',
-            '192.168.1.104',
+            'host.docker.internal',
             '.local',
         ],
 
-        // HMR по умолчанию работает по текущему хосту, но если что — укажем явно
-        hmr: {
-            host: '192.168.1.104',
-        },
-
-        // Проксирование запросов к бэкенду (FastAPI на :8000)
+        // Проксирование запросов к бэкенду (Docker: BACKEND_PORT=8000 на хосте)
         proxy: {
             '/api': {
-                target: 'http://127.0.0.1:8000',
+                target: 'http://127.0.0.1:8001',
                 changeOrigin: true,
                 secure: false,
                 ws: true,
             },
+            '/uploads': {
+                target: 'http://127.0.0.1:8001',
+                changeOrigin: true,
+                secure: false,
+            },
             '/docs': {
-                target: 'http://127.0.0.1:8000',
+                target: 'http://127.0.0.1:8001',
                 changeOrigin: true,
                 secure: false,
             },
             '/openapi.json': {
-                target: 'http://127.0.0.1:8000',
+                target: 'http://127.0.0.1:8001',
                 changeOrigin: true,
                 secure: false,
             },
             // Если у тебя есть /redoc — добавь на всякий случай
             '/redoc': {
-                target: 'http://127.0.0.1:8000',
+                target: 'http://127.0.0.1:8001',
                 changeOrigin: true,
                 secure: false,
             },

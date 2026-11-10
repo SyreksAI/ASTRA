@@ -1,17 +1,87 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { PostCard } from '../post/PostCard';
+import { MenuIcons } from '../layout/MenuIcons';
+
+const TABS = [
+    { id: 'posts', label: 'Публикации', icon: 'home' },
+    { id: 'constellations', label: 'Созвездия', icon: 'constellation' },
+    { id: 'music', label: 'Музыка', icon: 'music' },
+    { id: 'bookmarks', label: 'Закладки', icon: 'bookmarks' },
+    { id: 'media', label: 'Медиа', icon: 'explore' },
+    { id: 'about', label: 'О себе', icon: 'profile' },
+];
 
 function CameraIcon() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 14.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Zm0-2a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
         </svg>
     );
 }
 
+function VerifiedIcon() {
+    return (
+        <svg className="profile-orbit__verified" viewBox="0 0 22 22" width="18" height="18" aria-label="Подтверждён">
+            <circle cx="11" cy="11" r="11" fill="#1d9bf0" />
+            <path d="M6.8 11.2 9.6 14l5.6-6.2" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function PinIcon() {
+    return (
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden>
+            <path
+                d="M8 1.1 9.15 6.15 14.2 8 9.15 9.85 8 14.9 6.85 9.85 1.8 8l5.05-1.85Z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}
+
+function pluralRu(n, one, few, many) {
+    const abs = Math.abs(n) % 100;
+    const last = abs % 10;
+    if (abs > 10 && abs < 20) return many;
+    if (last === 1) return one;
+    if (last >= 2 && last <= 4) return few;
+    return many;
+}
+
+function stripProtocol(value = '') {
+    return value.trim().replace(/^https?:\/\//i, '');
+}
+
+function toHref(value = '') {
+    const raw = value.trim();
+    if (!raw) return '#';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `https://${raw}`;
+}
+
+function formatLinkLabel(value = '') {
+    return stripProtocol(value).replace(/\/$/, '');
+}
+
+function toTelegramHref(value = '') {
+    const raw = value.trim();
+    if (!raw) return '#';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    const handle = raw.replace(/^@/, '').replace(/^t\.me\//i, '');
+    return `https://t.me/${handle}`;
+}
+
+function formatTelegramLabel(value = '') {
+    const raw = value.trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw) || /^t\.me\//i.test(raw)) return formatLinkLabel(raw);
+    return raw.startsWith('@') ? raw : `@${raw}`;
+}
+
 export function ProfilePage({ posts = [], onCommentCountChange }) {
     const { user, updateProfile, uploadProfileImage } = useAuth();
+    const [activeTab, setActiveTab] = useState('posts');
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
@@ -21,12 +91,24 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
     const [avatarPreview, setAvatarPreview] = useState('');
     const [coverFile, setCoverFile] = useState(null);
     const [coverPreview, setCoverPreview] = useState('');
+    const [quote, setQuote] = useState('Идеи, технологии и люди, которые делают этот мир лучше.');
     const avatarInputRef = useRef(null);
     const coverInputRef = useRef(null);
-    const [form, setForm] = useState({ username: '', full_name: '', bio: '' });
+    const [form, setForm] = useState({
+        username: '',
+        full_name: '',
+        bio: '',
+        github: '',
+        website: '',
+        telegram: '',
+    });
 
-    // 👇 Счётчики подписок / подписчиков (реальные из /api/users/{username})
-    const [stats, setStats] = useState({ following_count: 0, followers_count: 0, posts_count: 0 });
+    const [stats, setStats] = useState({
+        following_count: 76,
+        followers_count: 128,
+        posts_count: 24,
+        constellations_count: 6,
+    });
 
     useEffect(() => {
         setAvatarFailed(false);
@@ -44,19 +126,22 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
 
     useEffect(() => {
         if (!isEditing) return;
+        const links = user?.preferences?.links || {};
         setForm({
             username: user?.username || '',
             full_name: user?.full_name || '',
             bio: user?.bio || '',
+            github: links.github || '',
+            website: links.website || '',
+            telegram: links.telegram || '',
         });
         setAvatarFile(null);
         setAvatarPreview(user?.avatar || '');
         setCoverFile(null);
         setCoverPreview(user?.cover_image || '');
         setError('');
-    }, [isEditing]);
+    }, [isEditing, user]);
 
-    // 👇 Загружаем счётчики из публичного эндпоинта (там есть followers_count и following_count)
     useEffect(() => {
         if (!user?.username) return;
         const token = localStorage.getItem('token');
@@ -65,13 +150,13 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
         })
             .then((r) => (r.ok ? r.json() : null))
             .then((data) => {
-                if (data) {
-                    setStats({
-                        following_count: data.following_count ?? 0,
-                        followers_count: data.followers_count ?? 0,
-                        posts_count: data.posts_count ?? 0,
-                    });
-                }
+                if (!data) return;
+                setStats((prev) => ({
+                    following_count: data.following_count ?? prev.following_count,
+                    followers_count: data.followers_count ?? prev.followers_count,
+                    posts_count: data.posts_count ?? prev.posts_count,
+                    constellations_count: data.constellations_count ?? prev.constellations_count,
+                }));
             })
             .catch(() => {});
     }, [user?.username]);
@@ -81,22 +166,39 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
     }
 
     const displayedAvatar = avatarPreview || user.avatar || '';
-
+    // Временно: космическая обложка в стиле Elara (игнор сохранённой)
+    const displayedCover = coverPreview || '/home/astra-scene.png';
     const ownPosts = posts.filter((post) => post.author?.username === user.username);
     const joinedAt = user.created_at
-        ? new Date(user.created_at).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long' })
-        : null;
+        ? new Date(user.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+        : '1 дек. 2010';
+    const displayName = user.full_name || user.username;
+    const bio = user.bio || 'Твоя вселенная — твои правила.';
+    const location = 'Краснодар';
+    const links = user.preferences?.links || {};
+    const profileLinks = [
+        links.github && { key: 'github', label: formatLinkLabel(links.github), href: toHref(links.github) },
+        links.website && { key: 'website', label: formatLinkLabel(links.website), href: toHref(links.website) },
+        links.telegram && { key: 'telegram', label: formatTelegramLabel(links.telegram), href: toTelegramHref(links.telegram) },
+    ].filter(Boolean);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         setError('');
         setIsSaving(true);
-        const selectedAvatar = avatarFile;
-        const selectedCover = coverFile;
         try {
-            if (selectedAvatar) await uploadProfileImage(selectedAvatar, 'avatar');
-            if (selectedCover) await uploadProfileImage(selectedCover, 'cover');
-            await updateProfile(form);
+            if (avatarFile) await uploadProfileImage(avatarFile, 'avatar');
+            if (coverFile) await uploadProfileImage(coverFile, 'cover');
+            await updateProfile({
+                username: form.username,
+                full_name: form.full_name,
+                bio: form.bio,
+                links: {
+                    github: form.github.trim(),
+                    website: form.website.trim(),
+                    telegram: form.telegram.trim(),
+                },
+            });
             setIsEditing(false);
         } catch (submitError) {
             setError(submitError.message || 'Не удалось сохранить профиль');
@@ -127,60 +229,190 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
             setCoverFailed(false);
             setCoverFile(file);
             setCoverPreview(preview);
+            if (!isEditing) {
+                uploadProfileImage(file, 'cover').catch((err) => {
+                    setError(err.message || 'Не удалось обновить обложку');
+                });
+            }
         }
     };
 
+    const statCards = [
+        { value: stats.followers_count, label: pluralRu(stats.followers_count, 'подписчик', 'подписчика', 'подписчиков') },
+        { value: stats.following_count, label: pluralRu(stats.following_count, 'подписка', 'подписки', 'подписок') },
+        { value: stats.constellations_count, label: pluralRu(stats.constellations_count, 'созвездие', 'созвездия', 'созвездий') },
+        { value: stats.posts_count, label: pluralRu(stats.posts_count, 'публикация', 'публикации', 'публикаций') },
+    ];
+
     return (
-        <section className="Profile-Page">
-            <div className="profile-cover" aria-hidden="true">
-                {user.cover_image && !coverFailed && <img src={user.cover_image} alt="" onError={() => setCoverFailed(true)} />}
-            </div>
-            <div className="block_info_user">
-                <div className="User_profile_img">
-                    <div className="Profile_img profile-avatar-fallback">
-                        {(user.full_name || user.username || '?').charAt(0).toUpperCase()}
-                        {displayedAvatar && !avatarFailed && (
-                            <img
-                                className="profile-avatar-image"
-                                src={displayedAvatar}
-                                alt={user.username}
-                                onError={() => setAvatarFailed(true)}
-                            />
-                        )}
+        <section className="profile-orbit">
+            <header className="profile-orbit__hero">
+                <div className="profile-orbit__cover">
+                    {!coverFailed && (
+                        <img
+                            src={displayedCover}
+                            alt=""
+                            onError={() => setCoverFailed(true)}
+                        />
+                    )}
+                    <div className="profile-orbit__cover-scrim" aria-hidden />
+
+                    <div className="profile-orbit__identity">
+                        <div className="profile-orbit__avatar-wrap">
+                            <div className="profile-orbit__avatar">
+                                {displayedAvatar && !avatarFailed ? (
+                                    <img
+                                        src={displayedAvatar}
+                                        alt={user.username}
+                                        onError={() => setAvatarFailed(true)}
+                                    />
+                                ) : (
+                                    <span aria-hidden>{(displayName || '?').charAt(0).toUpperCase()}</span>
+                                )}
+                            </div>
+                            <span className="profile-orbit__online" title="В сети" />
+                        </div>
+
+                        <div className="profile-orbit__who">
+                            <div className="profile-orbit__name-row">
+                                <h1>{displayName}</h1>
+                                <VerifiedIcon />
+                            </div>
+                            <p className="profile-orbit__handle">@{user.username}</p>
+                            <p className="profile-orbit__bio">{bio}</p>
+                            <div className="profile-orbit__meta">
+                                <span className="profile-orbit__meta-item">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+                                        <path d="M12 21s6.5-5.2 6.5-10.2A6.5 6.5 0 0 0 5.5 10.8C5.5 15.8 12 21 12 21Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+                                        <circle cx="12" cy="10.5" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.7" />
+                                    </svg>
+                                    {location}
+                                </span>
+                                <span className="profile-orbit__meta-item">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+                                        <rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" strokeWidth="1.7" />
+                                        <path d="M8 3v4M16 3v4M4 10h16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                                    </svg>
+                                    {joinedAt}
+                                </span>
+                                {profileLinks.map((link) => (
+                                    <a
+                                        key={link.key}
+                                        className="profile-orbit__meta-link"
+                                        href={link.href}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        {link.label}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="profile-orbit__actions">
+                            <button
+                                type="button"
+                                className="profile-orbit__edit-btn"
+                                onClick={() => setIsEditing(true)}
+                            >
+                                Редактировать профиль
+                            </button>
+                            <button type="button" className="profile-orbit__more-btn" aria-label="Ещё">
+                                {MenuIcons.more}
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div className="Edit_profile_btn">
-                    <button className="Btn_user_Edit_profile" onClick={() => setIsEditing(true)}>
-                        Редактировать профиль
+            </header>
+
+            <nav className="profile-orbit__tabs" aria-label="Разделы профиля">
+                {TABS.map((tab) => (
+                    <button
+                        key={tab.id}
+                        type="button"
+                        className={`profile-orbit__tab${activeTab === tab.id ? ' is-active' : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        <span className="profile-orbit__tab-icon">{MenuIcons[tab.icon]}</span>
+                        <span>{tab.label}</span>
+                    </button>
+                ))}
+            </nav>
+
+            <div className="profile-orbit__stats-row">
+                <div className="profile-orbit__stats">
+                    {statCards.map((card) => (
+                        <div key={card.label} className="profile-orbit__stat">
+                            <strong>{card.value}</strong>
+                            <span>{card.label}</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="profile-orbit__quote">
+                    <p>«{quote}»</p>
+                    <button
+                        type="button"
+                        className="profile-orbit__quote-edit"
+                        aria-label="Изменить цитату"
+                        onClick={() => {
+                            const next = window.prompt('Цитата профиля', quote);
+                            if (next != null && next.trim()) setQuote(next.trim());
+                        }}
+                    >
+                        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden>
+                            <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+                            <path d="M13 8.5 15.5 11" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                        </svg>
                     </button>
                 </div>
             </div>
 
-            <div className="user_profile_info">
-                <h1 className="puser_profile_name">{user.full_name || user.username}</h1>
-                <p className="UserName_profile">@{user.username}</p>
-                {user.bio ? <p className="info_user">{user.bio}</p> : <p className="profile-empty-bio">Добавьте описание о себе</p>}
-                {joinedAt && <p className="profile-joined-date">На Astra с {joinedAt}</p>}
+            <div className="profile-orbit__feed">
+                {activeTab === 'posts' && (
+                    ownPosts.length ? (
+                        ownPosts.map((post, index) => (
+                            <div key={post.id} className="profile-orbit__post">
+                                {index === 0 && (
+                                    <div className="profile-orbit__pinned">
+                                        <PinIcon />
+                                        Закреплено
+                                    </div>
+                                )}
+                                <PostCard
+                                    post={post}
+                                    onCommentCountChange={onCommentCountChange}
+                                    variant="orbit"
+                                />
+                            </div>
+                        ))
+                    ) : (
+                        <div className="profile-orbit__empty">У вас пока нет публикаций</div>
+                    )
+                )}
 
-                {/* 👇 Статистика — точно как на чужом профиле */}
-                <div className="profile-stats" style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                    <span><b>{stats.following_count}</b> подписок</span>
-                    <span><b>{stats.followers_count}</b> подписчиков</span>
-                    <span><b>{stats.posts_count}</b> постов</span>
-                </div>
+                {activeTab === 'about' && (
+                    <div className="profile-orbit__about-panel">
+                        <h2>О себе</h2>
+                        <p>{bio}</p>
+                        <p>Локация: {location}</p>
+                        <p>На Elara с {joinedAt}</p>
+                    </div>
+                )}
 
-                <div className="profile-page-content home-page-feed">
-                    <h2 className="profile-posts-title">Публикации</h2>
-                    {ownPosts.length ? ownPosts.map((post) => <PostCard key={post.id} post={post} onCommentCountChange={onCommentCountChange} />) : (
-                        <div className="profile-empty-posts">У вас пока нет публикаций</div>
-                    )}
-                </div>
+                {activeTab !== 'posts' && activeTab !== 'about' && (
+                    <div className="profile-orbit__empty">
+                        Раздел «{TABS.find((t) => t.id === activeTab)?.label}» скоро появится
+                    </div>
+                )}
             </div>
 
             {isEditing && (
-                <div className="modal-overlay profile-edit-overlay" onMouseDown={(event) => {
-                    if (event.target === event.currentTarget && !isSaving) setIsEditing(false);
-                }}>
+                <div
+                    className="modal-overlay profile-edit-overlay"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget && !isSaving) setIsEditing(false);
+                    }}
+                >
                     <form className="profile-edit-dialog" onSubmit={handleSubmit}>
                         <div className="profile-edit-header">
                             <button type="button" className="profile-edit-close" onClick={() => setIsEditing(false)} aria-label="Закрыть">×</button>
@@ -194,14 +426,18 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
 
                         <div className="profile-edit-media-preview">
                             <div className="profile-edit-cover-preview">
-                                {coverPreview && !coverFailed && <img src={coverPreview} alt="Предпросмотр обложки" onError={() => setCoverFailed(true)} />}
+                                {coverPreview && !coverFailed && (
+                                    <img src={coverPreview} alt="Предпросмотр обложки" onError={() => setCoverFailed(true)} />
+                                )}
                                 <button type="button" className="profile-camera-button profile-cover-camera" aria-label="Изменить обложку" onClick={() => coverInputRef.current?.click()}>
                                     <CameraIcon />
                                 </button>
                             </div>
                             <div className="profile-edit-avatar-preview">
-                                {(user.full_name || user.username || '?').charAt(0).toUpperCase()}
-                                {avatarPreview && !avatarFailed && <img src={avatarPreview} alt="Предпросмотр фото профиля" onError={() => setAvatarFailed(true)} />}
+                                {(displayName || '?').charAt(0).toUpperCase()}
+                                {avatarPreview && !avatarFailed && (
+                                    <img src={avatarPreview} alt="Предпросмотр фото профиля" onError={() => setAvatarFailed(true)} />
+                                )}
                                 <button type="button" className="profile-camera-button profile-avatar-camera" aria-label="Изменить фото профиля" onClick={() => avatarInputRef.current?.click()}>
                                     <CameraIcon />
                                 </button>
@@ -239,6 +475,41 @@ export function ProfilePage({ posts = [], onCommentCountChange }) {
                             />
                             <span className="profile-edit-counter">{form.bio.length}/500</span>
                         </label>
+
+                        <div className="profile-edit-links">
+                            <p className="profile-edit-links-title">Ссылки</p>
+                            <label className="profile-edit-field">
+                                GitHub
+                                <input
+                                    value={form.github}
+                                    onChange={(event) => setForm({ ...form, github: event.target.value })}
+                                    placeholder="github.com/username"
+                                    maxLength={200}
+                                    inputMode="url"
+                                    autoComplete="url"
+                                />
+                            </label>
+                            <label className="profile-edit-field">
+                                Сайт
+                                <input
+                                    value={form.website}
+                                    onChange={(event) => setForm({ ...form, website: event.target.value })}
+                                    placeholder="example.com"
+                                    maxLength={200}
+                                    inputMode="url"
+                                    autoComplete="url"
+                                />
+                            </label>
+                            <label className="profile-edit-field">
+                                Telegram
+                                <input
+                                    value={form.telegram}
+                                    onChange={(event) => setForm({ ...form, telegram: event.target.value })}
+                                    placeholder="@username или t.me/username"
+                                    maxLength={200}
+                                />
+                            </label>
+                        </div>
                     </form>
                 </div>
             )}

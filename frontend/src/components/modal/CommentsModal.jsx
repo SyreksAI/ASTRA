@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CommentsThread } from '../post/CommentsThread';
 import { timeAgo } from '../utils/dateUtils';
+import { PostMedia } from '../post/PostMedia';
 
 export function CommentsModal({ post, onClose, onCommentAdded }) {
     const scrollRef = useRef(null);
@@ -119,13 +120,7 @@ export function CommentsModal({ post, onClose, onCommentAdded }) {
                                     </div>
                                 )}
 
-                                {post.image && (
-                                    <img
-                                        src={post.image}
-                                        alt=""
-                                        className="comments-modal-post-image"
-                                    />
-                                )}
+                                <PostMedia post={post} className="comments-modal-post-media" />
 
                                 {author.username && (
                                     <div className="comments-modal-replying-to">

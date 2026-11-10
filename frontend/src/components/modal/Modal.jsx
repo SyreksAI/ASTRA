@@ -1,44 +1,78 @@
 // src/components/modal/Modal.jsx
 import React, { useEffect, useState, useRef } from 'react';
+import {
+    createComposerMediaItem,
+    MAX_POST_MEDIA_COUNT,
+    POST_MEDIA_ACCEPT,
+    validatePostMediaFile,
+} from '../../utils/postMedia';
+import { PostMediaPicker } from '../post/PostMediaPicker';
 
-// ИСПРАВЛЕНО: Добавили onAddPost в фигурные скобки ниже
 export function ModalPost({ onClose, onAddPost }) {
     const [text, setText] = useState('');
-    const [image, setImage] = useState(null);          // для хранения файла
-    const [preview, setPreview] = useState(null);      // для превью
+    const [mediaItems, setMediaItems] = useState([]);
+    const [activeMediaId, setActiveMediaId] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const fileInputRef = useRef(null);
 
+    const mediaItemsRef = useRef(mediaItems);
+    mediaItemsRef.current = mediaItems;
     useEffect(() => () => {
-        if (preview) URL.revokeObjectURL(preview);
-    }, [preview]);
+        mediaItemsRef.current.forEach((item) => {
+            if (item.preview) URL.revokeObjectURL(item.preview);
+        });
+    }, []);
+
+    const openFilePicker = () => {
+        fileInputRef.current?.click();
+    };
 
     const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            e.target.value = '';
-            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-                setError('Выберите изображение JPG, PNG или WebP');
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                setError('Размер изображения не должен превышать 5 МБ');
-                return;
-            }
-            setError('');
-            setImage(file);
-            setPreview(URL.createObjectURL(file));
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+
+        setError('');
+        if (mediaItems.length >= MAX_POST_MEDIA_COUNT) {
+            setError(`Не более ${MAX_POST_MEDIA_COUNT} файлов`);
+            return;
         }
+        const validationError = validatePostMediaFile(file);
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
+        const item = createComposerMediaItem(file);
+        setMediaItems((prev) => [...prev, item]);
+        setActiveMediaId(item.id);
+    };
+
+    const removeMedia = (id) => {
+        setMediaItems((prev) => {
+            const index = prev.findIndex((item) => item.id === id);
+            const target = prev[index];
+            if (target?.preview) URL.revokeObjectURL(target.preview);
+            const next = prev.filter((item) => item.id !== id);
+            if (activeMediaId === id) {
+                const fallback = next[Math.min(index, next.length - 1)];
+                setActiveMediaId(fallback?.id ?? null);
+            }
+            return next;
+        });
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (!text.trim() && !image) return;
+        if (!text.trim() && mediaItems.length === 0) return;
         setError('');
         setIsSaving(true);
         try {
-            await onAddPost({ text: text.trim(), imageFile: image });
+            await onAddPost({
+                text: text.trim(),
+                mediaFiles: mediaItems.map((item) => item.file),
+            });
             onClose();
         } catch (submitError) {
             setError(submitError.message || 'Не удалось опубликовать запись');
@@ -55,27 +89,21 @@ export function ModalPost({ onClose, onAddPost }) {
                     <button type="button" className="modal-close-btn" onClick={onClose}>✕</button>
                 </div>
 
-                {/* Кастомная область загрузки фото */}
-                <div 
-                    className="photo-upload-area"
-                    onClick={() => fileInputRef.current.click()}
-                >
-                    {preview ? (
-                        <img src={preview} alt="Превью" className="photo-preview" />
-                    ) : (
-                        <>
-                            <span className="photo-upload-text">Добавить фото</span>
-                            <span className="photo-upload-hint">Нажмите для выбора</span>
-                        </>
-                    )}
-                    {/* Скрытый инпут */}
+                <div className="photo-upload-area photo-upload-area--picker">
+                    <PostMediaPicker
+                        items={mediaItems}
+                        activeId={activeMediaId}
+                        onSelect={setActiveMediaId}
+                        onRemove={removeMedia}
+                        onRequestAdd={openFilePicker}
+                    />
                     <input
                         type="file"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept={POST_MEDIA_ACCEPT}
                         ref={fileInputRef}
                         onChange={handleFileChange}
                         className="hidden-file-input"
-                        id='ImgPostModal'
+                        id="ImgPostModal"
                     />
                 </div>
                 {error && <div className="auth-error" role="alert">{error}</div>}
@@ -85,14 +113,13 @@ export function ModalPost({ onClose, onAddPost }) {
                     value={text}
                     maxLength={5000}
                     onChange={(e) => setText(e.target.value)}
-                    id='TextPostModal'
+                    id="TextPostModal"
                 />
 
-                {/* Кнопка публикации */}
-                <button 
-                    className="modal-submit-btn" 
+                <button
+                    className="modal-submit-btn"
                     type="submit"
-                    disabled={isSaving || (!text.trim() && !image)}
+                    disabled={isSaving || (!text.trim() && mediaItems.length === 0)}
                 >
                     {isSaving ? 'Публикация…' : 'Опубликовать'}
                 </button>

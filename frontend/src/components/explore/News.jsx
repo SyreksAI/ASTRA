@@ -19,10 +19,10 @@ export function News({ suggestedUsers}) {
                 </div>
 
                 <div className="new_news_explore">
-                    <h4>Инди-исполнительница LUNNA, которую открыли через ASTRA, 
+                    <h4>Инди-исполнительница LUNNA, которую открыли через Elara, 
                         обогнала мировых поп-звезд по количеству прослушиваний.
                     </h4>
-                    <p>#ASTRA #Конкурс #Музыка</p>
+                    <p>#Elara #Конкурс #Музыка</p>
                 </div>
 
                 <div className="new_news_explore">
@@ -33,10 +33,10 @@ export function News({ suggestedUsers}) {
                 </div>
 
                 <div className="new_news_explore">
-                    <h4>Инди-исполнительница LUNNA, которую открыли через ASTRA, 
+                    <h4>Инди-исполнительница LUNNA, которую открыли через Elara, 
                         обогнала мировых поп-звезд по количеству прослушиваний.
                     </h4>
-                    <p>#ASTRA #Конкурс #Музыка</p>
+                    <p>#Elara #Конкурс #Музыка</p>
                 </div>
 
                 <div className="new_news_explore">

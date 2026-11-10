@@ -36,6 +36,7 @@ def serialize_public_user(
                 Follow.following_id == user.id,
             ).first() is not None
 
+    links = (user.preferences or {}).get("links") if isinstance(user.preferences, dict) else None
     return {
         "id": user.id,
         "username": user.username,
@@ -49,6 +50,7 @@ def serialize_public_user(
         "is_following": is_following,
         "posts_count": posts_count,
         "is_me": bool(current_user and current_user.id == user.id),
+        "links": links if isinstance(links, dict) else {},
     }
 @router.get("/search")
 def search_users(
